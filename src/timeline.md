@@ -180,14 +180,20 @@ const heatmapPlot = Plot.plot({
   x: { axis: null },
   y: {tickFormat: Plot.formatWeekday("en", "narrow"), tickSize: 0},
   fy: { tickFormat: "", padding: 0.1 },
-  color: { scheme: "PiYG", domain: [0, 10] },
+  color: { 
+    range: ["white", ...d3.schemeSpectral[9]], // Start with white, then use Spectral
+    domain: [0, Math.max(...heatmapData.map(d => d.count))] 
+   },
   marks: [
     Plot.cell(heatmapData, {
       x: (d) => d3.utcWeek.count(d3.utcYear(new Date(d.day)), new Date(d.day)), // Week number within year
       y: (d) => new Date(d.day).getUTCDay(), // Weekday number
       fy: (d) => "" + new Date(d.day).getUTCFullYear(), // Year
       fill: (d) => d.count, // Number of events
-      title: (d) => `${d.count} event(s) on ${d.day}\n\n${d.name.join("\n")}`, // Tooltip
+      title: (d) => `${d.count} event(s) on ${d.day}`, 
+      stroke: "#333", // Outline color (dark gray)
+      strokeWidth: 0.5, // Outline thickness
+      r: 2, // Add a corner radius for rounded squares
       inset: 0.5,
       tip: true
     })
@@ -196,15 +202,6 @@ const heatmapPlot = Plot.plot({
 ```
 
 ## Calendar
-
-<style>
-  .heatmap-container {
-    width: 80%; /* Reduce overall width */
-    height: 400px; /* Constrain height */
-    margin: auto; /* Center the heatmap */
-    overflow: hidden; /* Prevent overflow issues */
-  }
-</style>
 
 ${heatmapPlot}
 
