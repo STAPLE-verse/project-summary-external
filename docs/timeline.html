@@ -222,7 +222,7 @@ timelineContainer.appendChild(list);
 return {tasks,projectMembers,projectName,projectCreatedAt,projectMembersById,timelineEvents,timelineContainer,list};
 }});
 
-define({id: "10949805", inputs: ["d3","timelineEvents","Plot","calendar"], outputs: ["eventsByDate","startDate","endDate","allDates","eventsByDateMap","completeEventsCount","heatmapPlot"], body: (d3,timelineEvents,Plot,calendar) => {
+define({id: "81d058a1", inputs: ["d3","timelineEvents","Plot","calendar"], outputs: ["eventsByDate","startDate","endDate","allDates","eventsByDateMap","completeEventsCount","heatmapPlot"], body: (d3,timelineEvents,Plot,calendar) => {
 // Aggregate events by date
 const eventsByDate = d3.rollups(
   timelineEvents,
@@ -248,9 +248,12 @@ const heatmapPlot = (() => {
   const start = d3.utcDay.offset(d3.min(completeEventsCount, (d) => new Date(d.date)));
   const end = d3.utcDay.offset(d3.max(completeEventsCount, (d) => new Date(d.date)));
 
+  // Dynamically calculate width
+  const containerWidth = document.getElementById("plot-container").clientWidth || 1152;
+
   return Plot.plot({
-    width: 1152,
-    height: d3.utcYear.count(start, end) * 180,
+    width: containerWidth, // Use dynamic width
+    height: d3.utcYear.count(start, end) * 200,
     axis: null,
     padding: 0,
     x: {
@@ -345,7 +348,7 @@ timelineContainer
 <div class="observablehq observablehq--block"><!--:ffe673e6:--></div>
 <div class="observablehq observablehq--block"><!--:32820104:--></div>
 <div class="observablehq observablehq--block"><!--:1326eb29:--></div>
-<div class="observablehq observablehq--block"><!--:10949805:--></div>
+<div class="observablehq observablehq--block"><!--:81d058a1:--></div>
 <h2 id="calendar" tabindex="-1"><a class="observablehq-header-anchor" href="#calendar">Calendar</a></h2>
 <div id="plot-container" style="width: 100%; height: auto;">
   <observablehq-loading></observablehq-loading><!--:9c62283f:-->
@@ -369,7 +372,7 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
 </style></main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./forms"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-12-12T18:02:22">Dec 12, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-12-12T18:16:57">Dec 12, 2024</a>.</div>
 </footer>
 </div>
 </body>

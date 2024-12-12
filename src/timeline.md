@@ -190,9 +190,12 @@ const heatmapPlot = (() => {
   const start = d3.utcDay.offset(d3.min(completeEventsCount, (d) => new Date(d.date)));
   const end = d3.utcDay.offset(d3.max(completeEventsCount, (d) => new Date(d.date)));
 
+  // Dynamically calculate width
+  const containerWidth = document.getElementById("plot-container").clientWidth || 1152;
+
   return Plot.plot({
-    width: 1152,
-    height: d3.utcYear.count(start, end) * 180,
+    width: containerWidth, // Use dynamic width
+    height: d3.utcYear.count(start, end) * 200,
     axis: null,
     padding: 0,
     x: {
