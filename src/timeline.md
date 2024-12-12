@@ -138,7 +138,6 @@ timelineContainer.appendChild(list);
 ```
 
 ```js
-
 // get the whole year
 function generateFullYearRange(year) {
   const start = new Date(`${year}-01-01T00:00:00Z`);
