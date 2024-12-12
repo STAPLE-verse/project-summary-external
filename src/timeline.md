@@ -119,7 +119,7 @@ timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 //format date for heatmap
 timelineEvents = timelineEvents.map(event => ({
   ...event,
-  dateFormat: new Date(event.date).toISOString().split("T")[0] // Normalize to YYYY-MM-DD
+  dateFormat: new Date(event.date).toISOString().split("T")[0]
 }));
 
 // Create a container element for the timeline
@@ -161,6 +161,9 @@ for (let year = startYear; year <= endYear; year++) {
   fullYearRange.push(...generateFullYearRange(year));
 }
 
+// Extract years in the range
+const years = Array.from(new Set(timelineEvents.map(event => new Date(event.date).getUTCFullYear())));
+
 // Merge the full date range with heatmapData
 const heatmapData = fullYearRange.map(day => {
   const eventsForDay = timelineEvents.filter(event => event.dateFormat === day); // Exact match
@@ -171,30 +174,92 @@ const heatmapData = fullYearRange.map(day => {
   };
 });
 
-console.log(generateFullYearRange(2024)); // Inspect all dates for 2024
+// month labels
+const monthNames = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
 
+const monthLabels = monthNames.map((name, index) => {
+  const startOfMonth = new Date(Date.UTC(startYear, index, 1));
+  const middleOfMonth = new Date(startOfMonth);
+  middleOfMonth.setUTCDate(Math.ceil(new Date(startYear, index + 1, 0).getUTCDate() / 2)); // Middle of the month
+  return {
+    date: middleOfMonth.toISOString().split("T")[0], // Middle day of the month
+    label: name
+  };
+});
+
+const dayLabels = fullYearRange.map(day => ({
+  day: day, // The full date (YYYY-MM-DD)
+  label: new Date(day).getUTCDate() // Day of the month (1, 2, ..., 31)
+}));
+
+const containerWidth = document.getElementById('plot-container').clientWidth;
+// Generate year labels for each year in the heatmap range
+const yearLabels = years.map(year => ({
+  year: String(year), // Force it to be plain text
+  x: d3.utcWeek.count(d3.utcYear(new Date(`${year}-01-01T00:00:00Z`)), new Date(`${year}-01-01T00:00:00Z`)),
+}));
+
+// Update the heatmap
 const heatmapPlot = Plot.plot({
-  padding: 0,
-  aspectRatio: 1,
+  width: containerWidth,
+  // height: 400, // Adjust for the extra row for year labels
   x: { axis: null },
-  y: {tickFormat: Plot.formatWeekday("en", "narrow"), tickSize: 0},
-  fy: { tickFormat: "", padding: 0.1 },
+  y: { 
+    tickFormat: (d, i) => (i === 0 ? years[0] : Plot.formatWeekday("en", "narrow")(d)), // Replace top row with year label
+    tickSize: 0
+  },
+  fy: {
+    domain: years, // Use the years as facets
+    tickFormat: (year) => year, // Label each facet with the year
+    label: "Year", // Add a label for the facet axis
+    padding: 1 // Add space between the year blocks
+  },
   color: { 
-    range: ["white", ...d3.schemeSpectral[9]], // Start with white, then use Spectral
-    domain: [0, Math.max(...heatmapData.map(d => d.count))] 
-   },
+    range: ["white", ...d3.schemeSpectral[9]],
+    domain: [0, Math.max(...heatmapData.map(d => d.count))]
+  },
   marks: [
+    // Heatmap cells
     Plot.cell(heatmapData, {
-      x: (d) => d3.utcWeek.count(d3.utcYear(new Date(d.day)), new Date(d.day)), // Week number within year
-      y: (d) => new Date(d.day).getUTCDay(), // Weekday number
-      fy: (d) => "" + new Date(d.day).getUTCFullYear(), // Year
-      fill: (d) => d.count, // Number of events
-      title: (d) => `${d.count} event(s) on ${d.day}`, 
-      stroke: "#333", // Outline color (dark gray)
-      strokeWidth: 0.5, // Outline thickness
-      r: 2, // Add a corner radius for rounded squares
-      inset: 0.5,
-      tip: true
+      x: (d) => d3.utcWeek.count(d3.utcYear(new Date(fullYearRange[0])), new Date(d.day)),
+      y: (d) => new Date(d.day).getUTCDay() + 1, // Offset rows by 1 to make space for year
+      fill: (d) => d.count,
+      title: (d) => `${d.count} event(s) on ${d.day}`,
+      r: 2,
+    }),
+
+    // Year label
+    Plot.text(yearLabels, {
+      x: (d) => d.x,
+      y: 0, // Position at the top row
+      text: (d) => d.year,
+      fontSize: 12,
+      textAnchor: "middle",
+      fill: "currentColor",
+    }),
+
+    // Month labels
+    Plot.text(monthLabels, {
+      x: (d) => d3.utcWeek.count(d3.utcYear(new Date(fullYearRange[0])), new Date(d.date)),
+      y: -1, // Adjust to match the new spacing
+      text: (d) => d.label,
+      fontSize: 12,
+      textAnchor: "middle",
+      fill: "currentColor"
+    }),
+
+    // Day numbers
+    Plot.text(dayLabels, {
+      x: (d) =>
+        d3.utcWeek.count(d3.utcYear(new Date(fullYearRange[0])), new Date(d.day)),
+      y: (d) => new Date(d.day).getUTCDay() + 1, // Adjust for the offset
+      text: (d) => d.label, // Day of the month
+      fontSize: 8,
+      fill: "gray",
+      textAnchor: "middle"
     })
   ]
 });
@@ -202,8 +267,26 @@ const heatmapPlot = Plot.plot({
 
 ## Calendar
 
-${heatmapPlot}
+<div id="plot-container" style="width: 100%; height: auto;">
+  ${heatmapPlot}
+</div>
 
 ## Timeline Data
 
 ${timelineContainer}
+
+<style>
+.hero, .grid {
+  max-width: none; /* Remove the restriction on these containers */
+  width: 100%; /* Allow full width */
+}
+
+.grid .card {
+  max-width: none; /* Ensure cards are also unrestricted */
+  margin: 1rem; /* Add spacing between cards */
+}
+
+p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
+  max-width: 100%; /* Ensure all these elements can use full width */
+}
+</style>
