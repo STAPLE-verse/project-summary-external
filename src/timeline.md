@@ -5,22 +5,49 @@ toc: false
 ---
 
 ```js 
-const jsonData = FileAttachment("./data/project_summary.json").json();
+// imports 
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 
-function printJsonStructure(obj, indent = 0) {
-  const padding = " ".repeat(indent);
-  return Object.entries(obj)
-    .map(([key, value]) => {
-      if (typeof value === "object" && value !== null) {
-        return `${padding}${key}: {\n${printJsonStructure(value, indent + 2)}\n${padding}}`;
-      } else {
-        return `${padding}${key}: ${typeof value}`;
-      }
-    })
-    .join("\n");
+// calendar function
+function calendar({
+  date = Plot.identity,
+  inset = 0.5,
+  ...options
+} = {}) {
+  let D;
+  return {
+    fy: {transform: (data) => (D = Plot.valueof(data, date, Array)).map((d) => new Date(d).getUTCFullYear())},
+    x: {transform: () => D.map((d) => d3.utcWeek.count(d3.utcYear(d), d))},
+    y: {transform: () => D.map((d) => new Date(d).getUTCDay())},
+    inset,
+    ...options
+  };
 }
+
+// month line function 
+class MonthLine extends Plot.Mark {
+  static defaults = {stroke: "currentColor", strokeWidth: 1};
+  constructor(data, options = {}) {
+    const {x, y} = options;
+    super(data, {x: {value: x, scale: "x"}, y: {value: y, scale: "y"}}, options, MonthLine.defaults);
+  }
+  render(index, {x, y}, {x: X, y: Y}, dimensions) {
+    const {marginTop, marginBottom, height} = dimensions;
+    const dx = x.bandwidth(), dy = y.bandwidth();
+    return htl.svg`<path fill=none stroke=${this.stroke} stroke-width=${this.strokeWidth} d=${
+      Array.from(index, (i) => `${Y[i] > marginTop + dy * 1.5 // is the first day a Monday?
+          ? `M${X[i] + dx},${marginTop}V${Y[i]}h${-dx}` 
+          : `M${X[i]},${marginTop}`}V${height - marginBottom}`)
+        .join("")
+    }>`;
+  }
+}
+```
+
+```js
+//data
+const jsonData = FileAttachment("./data/project_summary.json").json();
 ```
 
 ```js
@@ -138,131 +165,90 @@ timelineContainer.appendChild(list);
 ```
 
 ```js
-// get the whole year
-function generateFullYearRange(year) {
-  const start = new Date(`${year}-01-01T00:00:00Z`);
-  const end = new Date(`${year}-12-31T23:59:59Z`);
-  const dates = [];
-  let currentDate = new Date(start);
-  while (currentDate <= end) {
-    dates.push(new Date(currentDate).toISOString().split("T")[0]); // Format as yyyy-mm-dd
-    currentDate.setUTCDate(currentDate.getUTCDate() + 1); // Use UTC to avoid daylight saving issues
-  }
-  return dates;
-}
+// Aggregate events by date
+const eventsByDate = d3.rollups(
+  timelineEvents,
+  (v) => v.length, // Count the number of events on each date
+  (d) => d.dateFormat // Group by the formatted date
+);
 
-// Extract earliest and latest years from timelineEvents
-const startYear = new Date(Math.min(...timelineEvents.map(event => new Date(event.dateFormat)))).getFullYear();
-const endYear = new Date(Math.max(...timelineEvents.map(event => new Date(event.dateFormat)))).getFullYear();
+// Generate a full range of dates for the year(s)
+const startDate = d3.utcYear(new Date(d3.min(timelineEvents, (d) => new Date(d.date))));
+const endDate = d3.utcYear.offset(d3.utcYear(new Date(d3.max(timelineEvents, (d) => new Date(d.date)))), 1) - 1;
 
-// Generate a full range for each year in the range
-const fullYearRange = [];
-for (let year = startYear; year <= endYear; year++) {
-  fullYearRange.push(...generateFullYearRange(year));
-}
+// Generate all dates from startDate to endDate
+const allDates = d3.utcDays(startDate, endDate);
 
-// Extract years in the range
-const years = Array.from(new Set(timelineEvents.map(event => new Date(event.date).getUTCFullYear())));
-
-// Merge the full date range with heatmapData
-const heatmapData = fullYearRange.map(day => {
-  const eventsForDay = timelineEvents.filter(event => event.dateFormat === day); // Exact match
-  return {
-    day,
-    count: eventsForDay.length,
-    name: eventsForDay.map(event => event.name) // Collect all event names as an array
-  };
-});
-
-// month labels
-const monthNames = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-];
-
-const monthLabels = monthNames.map((name, index) => {
-  const startOfMonth = new Date(Date.UTC(startYear, index, 1));
-  const middleOfMonth = new Date(startOfMonth);
-  middleOfMonth.setUTCDate(Math.ceil(new Date(startYear, index + 1, 0).getUTCDate() / 2)); // Middle of the month
-  return {
-    date: middleOfMonth.toISOString().split("T")[0], // Middle day of the month
-    label: name
-  };
-});
-
-const dayLabels = fullYearRange.map(day => ({
-  day: day, // The full date (YYYY-MM-DD)
-  label: new Date(day).getUTCDate() // Day of the month (1, 2, ..., 31)
+// Map all dates to include counts, defaulting to zero for missing dates
+const eventsByDateMap = new Map(eventsByDate); // Convert aggregated data to a Map for quick lookup
+const completeEventsCount = allDates.map((date) => ({
+  date: date.toISOString().split("T")[0],
+  count: eventsByDateMap.get(date.toISOString().split("T")[0]) || 0
 }));
 
-const containerWidth = document.getElementById('plot-container').clientWidth;
-// Generate year labels for each year in the heatmap range
-const yearLabels = years.map(year => ({
-  year: String(year), // Force it to be plain text
-  x: d3.utcWeek.count(d3.utcYear(new Date(`${year}-01-01T00:00:00Z`)), new Date(`${year}-01-01T00:00:00Z`)),
-}));
+const heatmapPlot = (() => {
+  const start = d3.utcDay.offset(d3.min(completeEventsCount, (d) => new Date(d.date)));
+  const end = d3.utcDay.offset(d3.max(completeEventsCount, (d) => new Date(d.date)));
 
-// Update the heatmap
-const heatmapPlot = Plot.plot({
-  width: containerWidth,
-  // height: 400, // Adjust for the extra row for year labels
-  x: { axis: null },
-  y: { 
-    tickFormat: (d, i) => (i === 0 ? years[0] : Plot.formatWeekday("en", "narrow")(d)), // Replace top row with year label
-    tickSize: 0
-  },
-  fy: {
-    domain: years, // Use the years as facets
-    tickFormat: (year) => year, // Label each facet with the year
-    label: "Year", // Add a label for the facet axis
-    padding: 1 // Add space between the year blocks
-  },
-  color: { 
-    range: ["white", ...d3.schemeSpectral[9]],
-    domain: [0, Math.max(...heatmapData.map(d => d.count))]
-  },
-  marks: [
-    // Heatmap cells
-    Plot.cell(heatmapData, {
-      x: (d) => d3.utcWeek.count(d3.utcYear(new Date(fullYearRange[0])), new Date(d.day)),
-      y: (d) => new Date(d.day).getUTCDay() + 1, // Offset rows by 1 to make space for year
-      fill: (d) => d.count,
-      title: (d) => `${d.count} event(s) on ${d.day}`,
-      r: 2,
-    }),
+  return Plot.plot({
+    width: 1152,
+    height: d3.utcYear.count(start, end) * 180,
+    axis: null,
+    padding: 0,
+    x: {
+      domain: d3.range(53) // 53 weeks in a year
+    },
+    y: {
+      axis: "left",
+      domain: [-1, 0, 1, 2, 3, 4, 5, 6], // Include all days of the week
+      ticks: [0, 1, 2, 3, 4, 5, 6], // Add ticks for all days
+      tickSize: 0,
+      tickFormat: Plot.formatWeekday() // Format as weekdays
+    },
+    fy: {
+      padding: 0.1,
+      reverse: true
+    },
+    color: {
+      scheme: "blues",
+      domain: [0, d3.max(completeEventsCount, (d) => d.count)], // Dynamic color scaling
+      legend: true,
+      label: "Number of Events"
+    },
+    marks: [
+      // Cell marks for event counts
+      Plot.cell(
+        completeEventsCount,
+        calendar({
+          date: (d) => new Date(d.date),
+          fill: (d) => d.count, // Color cells by the number of events
+          title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}` // Tooltip content
+        })
+      ),
 
-    // Year label
-    Plot.text(yearLabels, {
-      x: (d) => d.x,
-      y: 0, // Position at the top row
-      text: (d) => d.year,
-      fontSize: 12,
-      textAnchor: "middle",
-      fill: "currentColor",
-    }),
-
-    // Month labels
-    Plot.text(monthLabels, {
-      x: (d) => d3.utcWeek.count(d3.utcYear(new Date(fullYearRange[0])), new Date(d.date)),
-      y: -1, // Adjust to match the new spacing
-      text: (d) => d.label,
-      fontSize: 12,
-      textAnchor: "middle",
-      fill: "currentColor"
-    }),
-
-    // Day numbers
-    Plot.text(dayLabels, {
-      x: (d) =>
-        d3.utcWeek.count(d3.utcYear(new Date(fullYearRange[0])), new Date(d.day)),
-      y: (d) => new Date(d.day).getUTCDay() + 1, // Adjust for the offset
-      text: (d) => d.label, // Day of the month
-      fontSize: 8,
-      fill: "gray",
-      textAnchor: "middle"
-    })
-  ]
-});
+      // Text labels for the day of the month
+      Plot.text(
+        completeEventsCount,
+        calendar({
+          date: (d) => new Date(d.date),
+          text: (d) => new Date(d.date).getUTCDate(), // Day of the month
+          frameAnchor: "middle", // Center the text
+          fill: "black", // Text color
+          title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}` // Tooltip content
+        })
+      ),
+      // Year and month labels (as before)
+      Plot.text(
+        d3.utcYears(d3.utcYear(start), end),
+        calendar({ text: d3.utcFormat("%Y"), frameAnchor: "right", x: 0, y: -1, dx: -20 })
+      ),
+      Plot.text(
+        d3.utcMonths(d3.utcMonth(start), end).map(d3.utcMonday.ceil),
+        calendar({ text: d3.utcFormat("%b"), frameAnchor: "left", y: -1 })
+      )
+    ]
+  });
+})();
 ```
 
 ## Calendar

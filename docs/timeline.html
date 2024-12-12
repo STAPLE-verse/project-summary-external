@@ -15,6 +15,7 @@
 <link rel="modulepreload" href="./_observablehq/stdlib.95bfbf7e.js">
 <link rel="modulepreload" href="./_npm/@observablehq/plot@0.6.16/e828d8c8.js">
 <link rel="modulepreload" href="./_npm/d3@7.9.0/7055d4c5.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/063eb405.js">
 <link rel="modulepreload" href="./_npm/isoformat@0.2.1/c68fbd73.js">
 <link rel="modulepreload" href="./_npm/interval-tree-1d@1.0.4/a62ae5ce.js">
 <link rel="modulepreload" href="./_npm/d3-array@3.2.4/e95f898e.js">
@@ -57,28 +58,56 @@
 import {define} from "./_observablehq/client.4585fc9a.js";
 import {registerFile} from "./_observablehq/stdlib.95bfbf7e.js";
 
-registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.e372cc7d.json","lastModified":1733863486221,"size":15854});
+registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.c06b42ac.json","lastModified":1734040674712,"size":15854});
 
-define({id: "0985608c", inputs: ["FileAttachment"], outputs: ["jsonData","Plot","d3","printJsonStructure"], body: async (FileAttachment) => {
+define({id: "ffe673e6", inputs: ["htl"], outputs: ["Plot","d3","calendar","MonthLine"], body: async (htl) => {
 const [Plot, d3] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js")]);
-const jsonData = FileAttachment("./data/project_summary.json").json();
+// imports 
 
-function printJsonStructure(obj, indent = 0) {
-  const padding = " ".repeat(indent);
-  return Object.entries(obj)
-    .map(([key, value]) => {
-      if (typeof value === "object" && value !== null) {
-        return `${padding}${key}: {\n${printJsonStructure(value, indent + 2)}\n${padding}}`;
-      } else {
-        return `${padding}${key}: ${typeof value}`;
-      }
-    })
-    .join("\n");
+// calendar function
+function calendar({
+  date = Plot.identity,
+  inset = 0.5,
+  ...options
+} = {}) {
+  let D;
+  return {
+    fy: {transform: (data) => (D = Plot.valueof(data, date, Array)).map((d) => new Date(d).getUTCFullYear())},
+    x: {transform: () => D.map((d) => d3.utcWeek.count(d3.utcYear(d), d))},
+    y: {transform: () => D.map((d) => new Date(d).getUTCDay())},
+    inset,
+    ...options
+  };
 }
-return {jsonData,Plot,d3,printJsonStructure};
+
+// month line function 
+class MonthLine extends Plot.Mark {
+  static defaults = {stroke: "currentColor", strokeWidth: 1};
+  constructor(data, options = {}) {
+    const {x, y} = options;
+    super(data, {x: {value: x, scale: "x"}, y: {value: y, scale: "y"}}, options, MonthLine.defaults);
+  }
+  render(index, {x, y}, {x: X, y: Y}, dimensions) {
+    const {marginTop, marginBottom, height} = dimensions;
+    const dx = x.bandwidth(), dy = y.bandwidth();
+    return htl.svg`<path fill=none stroke=${this.stroke} stroke-width=${this.strokeWidth} d=${
+      Array.from(index, (i) => `${Y[i] > marginTop + dy * 1.5 // is the first day a Monday?
+          ? `M${X[i] + dx},${marginTop}V${Y[i]}h${-dx}` 
+          : `M${X[i]},${marginTop}`}V${height - marginBottom}`)
+        .join("")
+    }>`;
+  }
+}
+return {Plot,d3,calendar,MonthLine};
 }});
 
-define({id: "e69c1684", inputs: ["jsonData"], outputs: ["tasks","projectMembers","projectName","projectCreatedAt","projectMembersById","timelineEvents","timelineContainer","list"], body: (jsonData) => {
+define({id: "32820104", inputs: ["FileAttachment"], outputs: ["jsonData"], body: (FileAttachment) => {
+//data
+const jsonData = FileAttachment("./data/project_summary.json").json();
+return {jsonData};
+}});
+
+define({id: "1326eb29", inputs: ["jsonData"], outputs: ["tasks","projectMembers","projectName","projectCreatedAt","projectMembersById","timelineEvents","timelineContainer","list"], body: (jsonData) => {
 // Extract tasks and create timeline events
 const tasks = jsonData.tasks ?? [];
 const projectMembers = jsonData.projectMembers ?? [];
@@ -174,7 +203,7 @@ timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 //format date for heatmap
 timelineEvents = timelineEvents.map(event => ({
   ...event,
-  dateFormat: new Date(event.date).toISOString().split("T")[0] // Normalize to YYYY-MM-DD
+  dateFormat: new Date(event.date).toISOString().split("T")[0]
 }));
 
 // Create a container element for the timeline
@@ -193,68 +222,92 @@ timelineContainer.appendChild(list);
 return {tasks,projectMembers,projectName,projectCreatedAt,projectMembersById,timelineEvents,timelineContainer,list};
 }});
 
-define({id: "de6ed93a", inputs: ["timelineEvents","Plot","d3"], outputs: ["generateFullYearRange","startYear","endYear","fullYearRange","heatmapData","heatmapPlot"], body: (timelineEvents,Plot,d3) => {
-// get the whole year
-function generateFullYearRange(year) {
-  const start = new Date(`${year}-01-01T00:00:00Z`);
-  const end = new Date(`${year}-12-31T23:59:59Z`);
-  const dates = [];
-  let currentDate = new Date(start);
-  while (currentDate <= end) {
-    dates.push(new Date(currentDate).toISOString().split("T")[0]); // Format as yyyy-mm-dd
-    currentDate.setUTCDate(currentDate.getUTCDate() + 1); // Use UTC to avoid daylight saving issues
-  }
-  return dates;
-}
+define({id: "10949805", inputs: ["d3","timelineEvents","Plot","calendar"], outputs: ["eventsByDate","startDate","endDate","allDates","eventsByDateMap","completeEventsCount","heatmapPlot"], body: (d3,timelineEvents,Plot,calendar) => {
+// Aggregate events by date
+const eventsByDate = d3.rollups(
+  timelineEvents,
+  (v) => v.length, // Count the number of events on each date
+  (d) => d.dateFormat // Group by the formatted date
+);
 
-// Extract earliest and latest years from timelineEvents
-const startYear = new Date(Math.min(...timelineEvents.map(event => new Date(event.dateFormat)))).getFullYear();
-const endYear = new Date(Math.max(...timelineEvents.map(event => new Date(event.dateFormat)))).getFullYear();
+// Generate a full range of dates for the year(s)
+const startDate = d3.utcYear(new Date(d3.min(timelineEvents, (d) => new Date(d.date))));
+const endDate = d3.utcYear.offset(d3.utcYear(new Date(d3.max(timelineEvents, (d) => new Date(d.date)))), 1) - 1;
 
-// Generate a full range for each year in the range
-const fullYearRange = [];
-for (let year = startYear; year <= endYear; year++) {
-  fullYearRange.push(...generateFullYearRange(year));
-}
+// Generate all dates from startDate to endDate
+const allDates = d3.utcDays(startDate, endDate);
 
-// Merge the full date range with heatmapData
-const heatmapData = fullYearRange.map(day => {
-  const eventsForDay = timelineEvents.filter(event => event.dateFormat === day); // Exact match
-  return {
-    day,
-    count: eventsForDay.length,
-    name: eventsForDay.map(event => event.name) // Collect all event names as an array
-  };
-});
+// Map all dates to include counts, defaulting to zero for missing dates
+const eventsByDateMap = new Map(eventsByDate); // Convert aggregated data to a Map for quick lookup
+const completeEventsCount = allDates.map((date) => ({
+  date: date.toISOString().split("T")[0],
+  count: eventsByDateMap.get(date.toISOString().split("T")[0]) || 0
+}));
 
-console.log(generateFullYearRange(2024)); // Inspect all dates for 2024
+const heatmapPlot = (() => {
+  const start = d3.utcDay.offset(d3.min(completeEventsCount, (d) => new Date(d.date)));
+  const end = d3.utcDay.offset(d3.max(completeEventsCount, (d) => new Date(d.date)));
 
-const heatmapPlot = Plot.plot({
-  padding: 0,
-  aspectRatio: 1,
-  x: { axis: null },
-  y: {tickFormat: Plot.formatWeekday("en", "narrow"), tickSize: 0},
-  fy: { tickFormat: "", padding: 0.1 },
-  color: { 
-    range: ["white", ...d3.schemeSpectral[9]], // Start with white, then use Spectral
-    domain: [0, Math.max(...heatmapData.map(d => d.count))] 
-   },
-  marks: [
-    Plot.cell(heatmapData, {
-      x: (d) => d3.utcWeek.count(d3.utcYear(new Date(d.day)), new Date(d.day)), // Week number within year
-      y: (d) => new Date(d.day).getUTCDay(), // Weekday number
-      fy: (d) => "" + new Date(d.day).getUTCFullYear(), // Year
-      fill: (d) => d.count, // Number of events
-      title: (d) => `${d.count} event(s) on ${d.day}`, 
-      stroke: "#333", // Outline color (dark gray)
-      strokeWidth: 0.5, // Outline thickness
-      r: 2, // Add a corner radius for rounded squares
-      inset: 0.5,
-      tip: true
-    })
-  ]
-});
-return {generateFullYearRange,startYear,endYear,fullYearRange,heatmapData,heatmapPlot};
+  return Plot.plot({
+    width: 1152,
+    height: d3.utcYear.count(start, end) * 180,
+    axis: null,
+    padding: 0,
+    x: {
+      domain: d3.range(53) // 53 weeks in a year
+    },
+    y: {
+      axis: "left",
+      domain: [-1, 0, 1, 2, 3, 4, 5, 6], // Include all days of the week
+      ticks: [0, 1, 2, 3, 4, 5, 6], // Add ticks for all days
+      tickSize: 0,
+      tickFormat: Plot.formatWeekday() // Format as weekdays
+    },
+    fy: {
+      padding: 0.1,
+      reverse: true
+    },
+    color: {
+      scheme: "blues",
+      domain: [0, d3.max(completeEventsCount, (d) => d.count)], // Dynamic color scaling
+      legend: true,
+      label: "Number of Events"
+    },
+    marks: [
+      // Cell marks for event counts
+      Plot.cell(
+        completeEventsCount,
+        calendar({
+          date: (d) => new Date(d.date),
+          fill: (d) => d.count, // Color cells by the number of events
+          title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}` // Tooltip content
+        })
+      ),
+
+      // Text labels for the day of the month
+      Plot.text(
+        completeEventsCount,
+        calendar({
+          date: (d) => new Date(d.date),
+          text: (d) => new Date(d.date).getUTCDate(), // Day of the month
+          frameAnchor: "middle", // Center the text
+          fill: "black", // Text color
+          title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}` // Tooltip content
+        })
+      ),
+      // Year and month labels (as before)
+      Plot.text(
+        d3.utcYears(d3.utcYear(start), end),
+        calendar({ text: d3.utcFormat("%Y"), frameAnchor: "right", x: 0, y: -1, dx: -20 })
+      ),
+      Plot.text(
+        d3.utcMonths(d3.utcMonth(start), end).map(d3.utcMonday.ceil),
+        calendar({ text: d3.utcFormat("%b"), frameAnchor: "left", y: -1 })
+      )
+    ]
+  });
+})();
+return {eventsByDate,startDate,endDate,allDates,eventsByDateMap,completeEventsCount,heatmapPlot};
 }});
 
 define({id: "9c62283f", mode: "inline", inputs: ["heatmapPlot","display"], body: async (heatmapPlot,display) => {
@@ -280,25 +333,43 @@ timelineContainer
     <li class="observablehq-link"><a href="./">Project Summary</a></li>
   </ol>
   <ol>
-    <li class="observablehq-link"><a href="./example-dashboard">Example dashboard</a></li>
-    <li class="observablehq-link"><a href="./example-report">Example report</a></li>
-    <li class="observablehq-link observablehq-link-active"><a href="./timeline">Event Timeline</a></li>
+    <li class="observablehq-link"><a href="./people_roles">Contributors</a></li>
+    <li class="observablehq-link"><a href="./elements_tasks">Tasks</a></li>
+    <li class="observablehq-link"><a href="./forms">Form Data</a></li>
+    <li class="observablehq-link observablehq-link-active"><a href="./timeline">Events</a></li>
   </ol>
 </nav>
 <script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<div class="observablehq observablehq--block"><!--:0985608c:--></div>
-<div class="observablehq observablehq--block"><!--:e69c1684:--></div>
-<div class="observablehq observablehq--block"><!--:de6ed93a:--></div>
+<div class="observablehq observablehq--block"><!--:ffe673e6:--></div>
+<div class="observablehq observablehq--block"><!--:32820104:--></div>
+<div class="observablehq observablehq--block"><!--:1326eb29:--></div>
+<div class="observablehq observablehq--block"><!--:10949805:--></div>
 <h2 id="calendar" tabindex="-1"><a class="observablehq-header-anchor" href="#calendar">Calendar</a></h2>
-<p><observablehq-loading></observablehq-loading><!--:9c62283f:--></p>
+<div id="plot-container" style="width: 100%; height: auto;">
+  <observablehq-loading></observablehq-loading><!--:9c62283f:-->
+</div>
 <h2 id="timeline-data" tabindex="-1"><a class="observablehq-header-anchor" href="#timeline-data">Timeline Data</a></h2>
 <p><observablehq-loading></observablehq-loading><!--:f15ffaed:--></p>
-</main>
+<style>
+.hero, .grid {
+  max-width: none; /* Remove the restriction on these containers */
+  width: 100%; /* Allow full width */
+}
+
+.grid .card {
+  max-width: none; /* Ensure cards are also unrestricted */
+  margin: 1rem; /* Add spacing between cards */
+}
+
+p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
+  max-width: 100%; /* Ensure all these elements can use full width */
+}
+</style></main>
 <footer id="observablehq-footer">
-<nav><a rel="prev" href="./example-report"><span>Example report</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-12-12T11:24:21">Dec 12, 2024</a>.</div>
+<nav><a rel="prev" href="./forms"><span>Form Data</span></a></nav>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-12-12T18:02:22">Dec 12, 2024</a>.</div>
 </footer>
 </div>
 </body>
