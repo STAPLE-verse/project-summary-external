@@ -192,6 +192,7 @@ const heatmapPlot = (() => {
 
   // Dynamically calculate width
   const containerWidth = document.getElementById("plot-container").clientWidth || 1152;
+  const dynamicFontSize = Math.max(12, Math.round(containerWidth / 100)); // Scale font size dynamically
 
   return Plot.plot({
     width: containerWidth, // Use dynamic width
@@ -206,23 +207,27 @@ const heatmapPlot = (() => {
       domain: [-1, 0, 1, 2, 3, 4, 5, 6], // Include all days of the week
       ticks: [0, 1, 2, 3, 4, 5, 6], // Add ticks for all days
       tickSize: 0,
-      tickFormat: Plot.formatWeekday() // Format as weekdays
+      tickFormat: Plot.formatWeekday(), // Format as weekdays
+      fontSize: dynamicFontSize
     },
     fy: {
       padding: 0.1,
       reverse: true
     },
     color: {
-      scheme: "blues",
+      //scheme: "pubugn",
       domain: [0, d3.max(completeEventsCount, (d) => d.count)], // Dynamic color scaling
       legend: true,
-      label: "Number of Events"
+      label: "Number of Events",
+      fontSize: dynamicFontSize,
+      range: ["#FFFFFF", "#336699"]
     },
     marks: [
       // Cell marks for event counts
       Plot.cell(
         completeEventsCount,
         calendar({
+          fontSize: dynamicFontSize, 
           date: (d) => new Date(d.date),
           fill: (d) => d.count, // Color cells by the number of events
           title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}` // Tooltip content
@@ -237,17 +242,25 @@ const heatmapPlot = (() => {
           text: (d) => new Date(d.date).getUTCDate(), // Day of the month
           frameAnchor: "middle", // Center the text
           fill: "black", // Text color
+          fontSize: dynamicFontSize,
           title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}` // Tooltip content
         })
       ),
       // Year and month labels (as before)
       Plot.text(
         d3.utcYears(d3.utcYear(start), end),
-        calendar({ text: d3.utcFormat("%Y"), frameAnchor: "right", x: 0, y: -1, dx: -20 })
+        calendar({ 
+          text: d3.utcFormat("%Y"), 
+          frameAnchor: "right", x: 0, y: -1, dx: -20,
+          fontSize: dynamicFontSize })
       ),
       Plot.text(
         d3.utcMonths(d3.utcMonth(start), end).map(d3.utcMonday.ceil),
-        calendar({ text: d3.utcFormat("%b"), frameAnchor: "left", y: -1 })
+        calendar({ 
+          text: d3.utcFormat("%b"), 
+          frameAnchor: "left", y: -1,
+          fontSize: dynamicFontSize
+           })
       )
     ]
   });
