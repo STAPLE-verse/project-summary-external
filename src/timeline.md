@@ -243,7 +243,8 @@ const heatmapPlot = (() => {
           frameAnchor: "middle", // Center the text
           fill: "black", // Text color
           fontSize: dynamicFontSize,
-          title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}` // Tooltip content
+          title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}`, // Tooltip content
+          ariaLabel: (d) => d.count
         })
       ),
       // Year and month labels (as before)
@@ -265,6 +266,22 @@ const heatmapPlot = (() => {
     ]
   });
 })();
+
+setTimeout(() => {
+  const texts = document.querySelectorAll("#plot-container text");
+  console.log(`Found ${texts.length} <text> elements.`);
+  texts.forEach((text) => {
+    const count = parseInt(text.getAttribute("aria-label"), 10);
+    if (!isNaN(count)) {
+      console.log(`Styling element with aria-label: ${count}`);
+      if (count > 0) {
+        text.setAttribute("style", "font-weight: bold;");
+      } else {
+        text.setAttribute("style", "font-weight: normal;");
+      }
+    }
+  });
+}, 500); // Adjust delay based on rendering time
 ```
 
 ## Calendar
