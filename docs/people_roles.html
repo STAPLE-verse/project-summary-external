@@ -8,13 +8,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
 <link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight,alt,wide.db1cdf55.css">
+<link rel="preload" as="style" href="./_observablehq/stdlib/inputs.ea9fd553.css">
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
 <link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight,alt,wide.db1cdf55.css">
-<link rel="modulepreload" href="./_observablehq/client.4585fc9a.js">
+<link rel="stylesheet" type="text/css" href="./_observablehq/stdlib/inputs.ea9fd553.css">
+<link rel="modulepreload" href="./_observablehq/client.1d1e0783.js">
 <link rel="modulepreload" href="./_observablehq/runtime.9393ab6d.js">
 <link rel="modulepreload" href="./_observablehq/stdlib.95bfbf7e.js">
 <link rel="modulepreload" href="./_npm/@observablehq/plot@0.6.16/e828d8c8.js">
 <link rel="modulepreload" href="./_npm/d3@7.9.0/7055d4c5.js">
+<link rel="modulepreload" href="./_observablehq/stdlib/inputs.d397b6a8.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/063eb405.js">
 <link rel="modulepreload" href="./_npm/isoformat@0.2.1/c68fbd73.js">
 <link rel="modulepreload" href="./_npm/interval-tree-1d@1.0.4/a62ae5ce.js">
 <link rel="modulepreload" href="./_npm/d3-array@3.2.4/e95f898e.js">
@@ -54,16 +58,457 @@
 <link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
 <script type="module">
 
-import {define} from "./_observablehq/client.4585fc9a.js";
+import {define} from "./_observablehq/client.1d1e0783.js";
 import {registerFile} from "./_observablehq/stdlib.95bfbf7e.js";
 
-registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.c06b42ac.json","lastModified":1734040674712,"size":15854});
+registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.8b37e4a5.json","lastModified":1736116661396,"size":16035});
 
-define({id: "9ebc31f7", inputs: ["FileAttachment"], outputs: ["jsonData","Plot","d3"], body: async (FileAttachment) => {
-const [Plot, d3] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js")]);
+define({id: "31210ee2", inputs: ["FileAttachment"], outputs: ["jsonData","Plot","d3","Inputs"], body: async (FileAttachment) => {
+const [Plot, d3, Inputs] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js"), import("./_observablehq/stdlib/inputs.d397b6a8.js")]);
 const jsonData = FileAttachment("./data/project_summary.json").json();
 
-return {jsonData,Plot,d3};
+return {jsonData,Plot,d3,Inputs};
+}});
+
+define({id: "660d5592", inputs: ["jsonData"], outputs: ["filteredMembers","projectMembersDataFrame","groupMembers","groupMembersDataFrame","allRoles","uniqueRolesDataFrame","rolesDataFrame","tasksDataFrame"], body: (jsonData) => {
+// Extract project members where there is exactly one user in the `users` array
+const filteredMembers = jsonData.projectMembers.filter(
+  (member) => member.name === null
+);
+
+// Map the data into a dataframe-like array of objects
+const projectMembersDataFrame = filteredMembers.map((member) => {
+  const user = member.users[0];
+  const roles = member.roles.map((role) => role.name).join(", ");
+  return {
+    projectMemberId: member.id,
+    username: user.username || "Not Provided",
+    firstName: user.firstName || "Not Provided",
+    lastName: user.lastName || "Not Provided",
+    roles: roles || "No Roles",
+    createdAt: member.createdAt,
+    updatedAt: member.updatedAt,
+  };
+});
+
+// Extract project members where there is more than one user in the `users` array
+const groupMembers = jsonData.projectMembers.filter(
+  (member) => member.name !== null
+);
+
+// Map the data into a dataframe-like array of objects, each user gets their own row
+const groupMembersDataFrame = groupMembers.flatMap((member) => {
+  return member.users.map((user) => ({
+    projectMemberId: member.id,
+    groupName: member.name || "Unnamed Group",
+    username: user.username || "Not Provided",
+    firstName: user.firstName || "Not Provided",
+    lastName: user.lastName || "Not Provided",
+    roles: member.roles.map((role) => role.name).join(", ") || "No Roles",
+    createdAt: member.createdAt,
+    updatedAt: member.updatedAt,
+  }));
+});
+
+// Extract all roles from project members
+const allRoles = jsonData.projectMembers.flatMap((member) => member.roles);
+
+// Deduplicate roles based on `name`, `description`, and `taxonomy`
+const uniqueRolesDataFrame = Array.from(
+  new Map(
+    allRoles.map((role) => [
+      `${role.name}-${role.description}-${role.taxonomy}`, // Unique key for deduplication
+      role
+    ])
+  ).values()
+);
+
+// Transform the unique roles into a dataframe-like structure
+const rolesDataFrame = uniqueRolesDataFrame.map((role) => ({
+  name: role.name || "No Name",
+  description: role.description || "No Description",
+  taxonomy: role.taxonomy || "No Taxonomy",
+}));
+
+// Extract tasks data and expand to include task logs
+const tasksDataFrame = jsonData.tasks.flatMap((task) =>
+  task.taskLogs
+    .filter((log) => log.completedById !== null) // Skip logs where completedById is null
+    .map((log) => ({
+      taskId: task.id,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      createdById: task.createdById,
+      formVersionId: task.formVersionId || "Not Provided",
+      deadline: task.deadline || "No Deadline",
+      name: task.name || "Unnamed Task",
+      description: task.description || "No Description",
+      status: task.status || "Unknown Status",
+      elementName: task.element?.name || "No Element Name",
+      elementDescription: task.element?.description || "No Element Description",
+      taskLogCreatedAt: log.createdAt,
+      taskLogStatus: log.status || "Unknown Status",
+      taskLogMetadata: log.metadata || "No Metadata",
+      completedById: log.completedById,
+      assignedToId: log.assignedToId,
+    }))
+);
+return {filteredMembers,projectMembersDataFrame,groupMembers,groupMembersDataFrame,allRoles,uniqueRolesDataFrame,rolesDataFrame,tasksDataFrame};
+}});
+
+define({id: "3bbaf4f9", inputs: ["tasksDataFrame","projectMembersDataFrame","html"], outputs: ["latestTaskLogs","individualsWithTaskData","style","renderIndividualCards"], body: (tasksDataFrame,projectMembersDataFrame,html) => {
+// Deduplicate task logs to only include the latest log for each combination of `taskId` and `assignedToId`
+const latestTaskLogs = Array.from(
+  tasksDataFrame
+    .reduce((map, log) => {
+      const key = `${log.taskId}-${log.assignedToId}`;
+      const existingLog = map.get(key);
+
+      // Keep the log with the latest `createdAt`
+      if (!existingLog || new Date(log.taskLogCreatedAt) > new Date(existingLog.taskLogCreatedAt)) {
+        map.set(key, log);
+      }
+
+      return map;
+    }, new Map())
+    .values()
+);
+// Group task logs by user and count completed tasks and metadata forms
+const individualsWithTaskData = projectMembersDataFrame.map((individual) => {
+  // Filter task logs completed by the individual
+  const completedTaskLogs = latestTaskLogs.filter(
+    (log) => log.assignedToId === individual.projectMemberId && log.taskLogStatus === "COMPLETED"
+  );
+
+  // Count completed tasks
+  const numberOfTasksCompleted = completedTaskLogs.length;
+
+  // Count metadata forms
+  const numberOfMetadataForms = completedTaskLogs.filter(
+    (log) => log.taskLogMetadata !== "No Metadata"
+  ).length;
+
+  // Construct name, replacing "Not Provided Not Provided" with "No Name Provided"
+  const fullName =
+    `${individual.firstName} ${individual.lastName}`.trim() === "Not Provided Not Provided"
+      ? "No Name Provided"
+      : `${individual.firstName} ${individual.lastName}`;
+
+  return {
+    projectMemberId: individual.projectMemberId,
+    name: `${fullName} (${individual.username})`,
+    numberOfTasksCompleted,
+    numberOfMetadataForms,
+  };
+});
+
+const style = document.createElement("style");
+style.textContent = `
+  .individual-cards-container {
+    display: flex;
+    flex-wrap: wrap; /* Allows cards to wrap if the row gets too long */
+    gap: 16px; /* Adds spacing between cards */
+    justify-content: flex-start; /* Align cards to the start of the row */
+  }
+  .individual-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    font-family: Arial, sans-serif;
+    flex: 1 1 calc(33% - 16px); /* Adjust to fit 3 cards per row, with gaps */
+    box-sizing: border-box; /* Ensure padding doesn't exceed width */
+  }
+  .individual-card h4 {
+    margin-top: 0;
+    font-size: 1.2em;
+  }
+  .individual-card p {
+    margin: 4px 0;
+  }
+`;
+document.head.appendChild(style);
+
+// Function to render individual cards in a flex container
+function renderIndividualCards(data) {
+  return html`<div class="individual-cards-container">
+    ${data.map(
+      (individual) => html`
+        <div class="individual-card">
+          <h4>${individual.name}</h4>
+          <p><strong>Tasks Completed:</strong> ${individual.numberOfTasksCompleted}</p>
+          <p><strong>Metadata Forms:</strong> ${individual.numberOfMetadataForms}</p>
+        </div>
+      `
+    )}
+  </div>`;
+}
+return {latestTaskLogs,individualsWithTaskData,style,renderIndividualCards};
+}});
+
+define({id: "11c0268b", inputs: ["groupMembers","latestTaskLogs","html","style"], outputs: ["teamsWithTaskData","teamsDataArray","renderTeamCards"], body: (groupMembers,latestTaskLogs,html,style) => {
+// Group task logs by team ID (assignedToId) and calculate completed tasks and metadata forms
+const teamsWithTaskData = groupMembers.reduce((teamsMap, team) => {
+  // Initialize or update team entry
+  const teamData = teamsMap.get(team.id) || {
+    teamId: team.id,
+    teamName: team.name || "Unnamed Team",
+    memberNames: [],
+    numberOfTasksCompleted: 0,
+    numberOfMetadataForms: 0,
+  };
+
+  // Add team member names
+  team.users.forEach((user) => {
+    const memberName = `${user.firstName?.trim() || "No Name"} ${user.lastName?.trim() || "Provided"} (${user.username || "No Username"})`;
+    if (!teamData.memberNames.includes(memberName)) {
+      teamData.memberNames.push(memberName);
+    }
+  });
+
+  // Filter task logs completed by this team
+  const completedTaskLogs = latestTaskLogs.filter(
+    (log) => log.assignedToId === team.id && log.taskLogStatus === "COMPLETED"
+  );
+
+  // Update team-level task counts
+  teamData.numberOfTasksCompleted += completedTaskLogs.length;
+  teamData.numberOfMetadataForms += completedTaskLogs.filter(
+    (log) => log.taskLogMetadata !== "No Metadata"
+  ).length;
+
+  // Store updated team data
+  teamsMap.set(team.id, teamData);
+
+  return teamsMap;
+}, new Map());
+
+// Convert the teams map to an array for rendering
+const teamsDataArray = Array.from(teamsWithTaskData.values());
+
+// Function to render team cards in a flex container
+function renderTeamCards(data) {
+  return html`<div class="team-cards-container">
+    ${data.map(
+      (team) => html`
+        <div class="team-card">
+          <h4>${team.teamName}</h4>
+          <p><strong>Members:</strong> ${team.memberNames.join(", ")}</p>
+          <p><strong>Tasks Completed:</strong> ${team.numberOfTasksCompleted}</p>
+          <p><strong>Metadata Forms:</strong> ${team.numberOfMetadataForms}</p>
+        </div>
+      `
+    )}
+  </div>`;
+}
+
+// Apply flexbox styling for team cards (similar to individual cards)
+style.textContent += `
+  .team-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-start;
+  }
+  .team-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    font-family: Arial, sans-serif;
+    flex: 1 1 calc(50% - 16px); /* Adjust to fit 2 cards per row, with gaps */
+    box-sizing: border-box;
+  }
+  .team-card h4 {
+    margin-top: 0;
+    font-size: 1.4em;
+  }
+  .team-card p {
+    margin: 4px 0;
+  }
+`;
+return {teamsWithTaskData,teamsDataArray,renderTeamCards};
+}});
+
+define({id: "ca290beb", mode: "inline", inputs: ["renderIndividualCards","individualsWithTaskData","display"], body: async (renderIndividualCards,individualsWithTaskData,display) => {
+display(await(
+renderIndividualCards(individualsWithTaskData)
+))
+}});
+
+define({id: "081a5752", mode: "inline", inputs: ["renderTeamCards","teamsDataArray","display"], body: async (renderTeamCards,teamsDataArray,display) => {
+display(await(
+renderTeamCards(teamsDataArray)
+))
+}});
+
+define({id: "673e09ae", inputs: ["tasksDataFrame","groupMembersDataFrame","projectMembersDataFrame","view","Inputs"], outputs: ["tasksWithNames","selectDropDown"], body: (tasksDataFrame,groupMembersDataFrame,projectMembersDataFrame,view,Inputs) => {
+const tasksWithNames = tasksDataFrame.map((task) => {
+  // Find the assigned team or individual name
+  const assignedName = (() => {
+    const assignedTeam = groupMembersDataFrame.find(
+      (team) => team.projectMemberId === task.assignedToId
+    );
+
+    if (assignedTeam) {
+      return assignedTeam.groupName || "Unnamed Team";
+    }
+
+    const assignedMember = projectMembersDataFrame.find(
+      (member) => member.projectMemberId === task.assignedToId
+    );
+
+    if (assignedMember) {
+      const fullName =
+        `${assignedMember.firstName?.trim() || "Not Provided"} ${
+          assignedMember.lastName?.trim() || "Not Provided"
+        }`.trim();
+      return fullName === "Not Provided Not Provided"
+        ? `No Name Provided (${assignedMember.username || "No Username"})`
+        : `${fullName} (${assignedMember.username || "No Username"})`;
+    }
+    return "Unassigned"; // Fallback if no match is found
+  })();
+
+  // Find the completed by team or individual name
+  const completedByName = (() => {
+    const completedByTeam = groupMembersDataFrame.find(
+      (team) => team.projectMemberId === task.completedById
+    );
+
+    if (completedByTeam) {
+      return completedByTeam.groupName || "Unnamed Team";
+    }
+
+    const completedByMember = projectMembersDataFrame.find(
+      (member) => member.projectMemberId === task.completedById
+    );
+
+    if (completedByMember) {
+      const fullName =
+        `${completedByMember.firstName?.trim() || "Not Provided"} ${
+          completedByMember.lastName?.trim() || "Not Provided"
+        }`.trim();
+      return fullName === "Not Provided Not Provided"
+        ? `No Name Provided (${completedByMember.username || "No Username"})`
+        : `${fullName} (${completedByMember.username || "No Username"})`;
+    }
+    return "Unknown"; // Fallback if no match is found
+  })();
+
+  // Return a new object with updated assignedTo and completedBy fields
+  return {
+    ...task, // Spread the existing task data
+    assignedTo: assignedName, // Replace assignedToId with the formatted name
+    completedBy: completedByName, // Replace completedById with the formatted name
+  };
+});
+
+const selectDropDown = view(
+  Inputs.select(
+Array.from(
+      new Set(tasksWithNames.map((task) => task.assignedTo)) 
+    ),
+  {     
+    sort: true,
+    unique: true,
+    value: "Select a Member or Team", // Default selection (empty)
+  }
+))
+return {tasksWithNames,selectDropDown};
+}});
+
+define({id: "75703b04", inputs: ["view","Inputs","tasksWithNames","selectDropDown"], outputs: ["tableOutput"], body: (view,Inputs,tasksWithNames,selectDropDown) => {
+const tableOutput = view(
+    Inputs.table(
+        tasksWithNames.filter((d) => d.assignedTo === selectDropDown)),
+        { sort: "name", select: false }
+        )
+return {tableOutput};
+}});
+
+define({id: "2799ef99", inputs: ["tasksWithNames","selectDropDown","$"], outputs: ["createHtmlTable","filteredData"], body: (tasksWithNames,selectDropDown,$) => {
+function createHtmlTable(data, containerId, tableId) {
+  const container = document.getElementById(containerId);
+
+  if (!container) {
+    console.error(`Container with id "${containerId}" not found.`);
+    return;
+  }
+
+  // Create the table
+  const table = document.createElement("table");
+  table.id = tableId; // Assign the provided tableId
+  table.className = "custom-table";
+
+  // Create table header
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+
+  // Use the keys of the first object in the data as headers
+  const headers = Object.keys(data[0]);
+  headers.forEach((key) => {
+    const th = document.createElement("th");
+    th.textContent = key.replace(/([A-Z])/g, " $1"); // Add spaces before uppercase letters
+    headerRow.appendChild(th);
+  });
+
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Create table body
+  const tbody = document.createElement("tbody");
+
+  data.forEach((item) => {
+    const row = document.createElement("tr");
+    headers.forEach((key) => {
+      const td = document.createElement("td");
+      td.textContent = item[key] || "N/A"; // Fallback to "N/A" if the value is null/undefined
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(tbody);
+
+  // Clear any existing content in the container and add the table
+  container.innerHTML = "";
+  container.appendChild(table);
+}
+
+// Call the function to create the table
+const filteredData = tasksWithNames.filter(
+  (task) => task.assignedTo === selectDropDown
+);
+
+createHtmlTable(filteredData, "table-container", "tasks-table");
+
+$("#tasks-table").DataTable({
+  paging: true,
+  searching: true,
+  ordering: true,
+  responsive: true,
+  scrollX: true,
+  initComplete: function () {
+    // Add a text input for each column
+    this.api()
+      .columns()
+      .every(function () {
+        const column = this;
+        const header = $(column.header());
+        const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+          .appendTo($(header).empty())
+          .on("keyup change clear", function () {
+            if (column.search() !== this.value) {
+              column.search(this.value).draw();
+            }
+          });
+      });
+  },
+});
+return {createHtmlTable,filteredData};
 }});
 
 </script>
@@ -86,11 +531,47 @@ return {jsonData,Plot,d3};
 <script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<div class="observablehq observablehq--block"><!--:9ebc31f7:--></div>
-</main>
+<div class="observablehq observablehq--block"><!--:31210ee2:--></div>
+<div class="observablehq observablehq--block"><!--:660d5592:--></div>
+<div class="observablehq observablehq--block"><!--:3bbaf4f9:--></div>
+<div class="observablehq observablehq--block"><!--:11c0268b:--></div>
+<h2 id="individual-members" tabindex="-1"><a class="observablehq-header-anchor" href="#individual-members">Individual Members</a></h2>
+<p>
+</p><p><observablehq-loading></observablehq-loading><!--:ca290beb:--></p>
+<h2 id="teams" tabindex="-1"><a class="observablehq-header-anchor" href="#teams">Teams</a></h2>
+<p>
+</p><p><observablehq-loading></observablehq-loading><!--:081a5752:--></p>
+<h2 id="view-data-by-member-or-team" tabindex="-1"><a class="observablehq-header-anchor" href="#view-data-by-member-or-team">View Data by Member or Team</a></h2>
+<p>
+</p><div class="observablehq observablehq--block"><!--:673e09ae:--></div>
+<div class="observablehq observablehq--block"><!--:75703b04:--></div>
+<div class="observablehq observablehq--block"><!--:2799ef99:--></div>
+<p>
+</p><h2 id="data-table-version" tabindex="-1"><a class="observablehq-header-anchor" href="#data-table-version">Data Table Version</a></h2>
+<!-- Load jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Load DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<div id="table-container"></div>
+<style>
+.hero, .grid {
+  max-width: none; /* Remove the restriction on these containers */
+  width: 100%; /* Allow full width */
+}
+
+.grid .card {
+  max-width: none; /* Ensure cards are also unrestricted */
+  margin: 1rem; /* Add spacing between cards */
+}
+
+p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
+  max-width: 100%; /* Ensure all these elements can use full width */
+}
+</style></main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./"><span>Project Summary</span></a><a rel="next" href="./elements_tasks"><span>Tasks</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-12-12T19:35:36">Dec 12, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-01-05T22:45:20">Jan 5, 2025</a>.</div>
 </footer>
 </div>
 </body>
