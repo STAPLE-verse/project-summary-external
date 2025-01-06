@@ -8,6 +8,7 @@ toc: false
 // imports 
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
+import CalHeatmap from "npm:cal-heatmap";
 
 // calendar function
 function calendar({
@@ -269,11 +270,11 @@ const heatmapPlot = (() => {
 
 setTimeout(() => {
   const texts = document.querySelectorAll("#plot-container text");
-  console.log(`Found ${texts.length} <text> elements.`);
+  //console.log(`Found ${texts.length} <text> elements.`);
   texts.forEach((text) => {
     const count = parseInt(text.getAttribute("aria-label"), 10);
     if (!isNaN(count)) {
-      console.log(`Styling element with aria-label: ${count}`);
+      //console.log(`Styling element with aria-label: ${count}`);
       if (count > 0) {
         text.setAttribute("style", "font-weight: bold;");
       } else {
@@ -286,13 +287,33 @@ setTimeout(() => {
 
 ## Calendar
 
-<div id="plot-container" style="width: 100%; height: auto;">
-  ${heatmapPlot}
-</div>
+<div id="plot-container" style="width: 100%; height: auto;">${heatmapPlot}</div>
 
 ## Timeline Data
 
-${timelineContainer}
+<div>${timelineContainer}</div>
+
+## Calendar 2
+<p>
+
+<link rel="stylesheet" href="https://unpkg.com/cal-heatmap@4.2.4/dist/cal-heatmap.css">
+
+```js
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Initializing Cal-Heatmap...");
+  const container = document.querySelector("#cal-heatmap");
+  if (!container) {
+    console.error("Target container #cal-heatmap not found.");
+    return;
+  }
+
+  const cal = new CalHeatmap();
+  cal.paint({});
+  console.log("Cal-Heatmap rendered successfully.");
+});
+```
+
+<div id="cal-heatmap"></div>
 
 <style>
 .hero, .grid {
