@@ -5,10 +5,12 @@ toc: false
 ---
 
 ```js 
+// import data and npm packages 
 const jsonData = FileAttachment("./data/project_summary.json").json();
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 import * as Inputs from "npm:@observablehq/inputs";
+import Plotly from "npm:plotly.js-dist";
 ```
 
 ```js
@@ -120,11 +122,20 @@ const individualsWithTaskData = projectMembersDataFrame.map((individual) => {
     (log) => log.assignedToId === individual.projectMemberId && log.taskLogStatus === "COMPLETED"
   );
 
+  const allTaskLogs = latestTaskLogs.filter(
+    (log) => log.assignedToId === individual.projectMemberId
+  );
+
   // Count completed tasks
   const numberOfTasksCompleted = completedTaskLogs.length;
+  const numberOfTasks = allTaskLogs.length;
 
   // Count metadata forms
   const numberOfMetadataForms = completedTaskLogs.filter(
+    (log) => log.taskLogMetadata !== "No Metadata"
+  ).length;
+
+  const allMetaDataForms = allTaskLogs.filter(
     (log) => log.taskLogMetadata !== "No Metadata"
   ).length;
 
@@ -138,52 +149,14 @@ const individualsWithTaskData = projectMembersDataFrame.map((individual) => {
     projectMemberId: individual.projectMemberId,
     name: `${fullName} (${individual.username})`,
     numberOfTasksCompleted,
+    numberOfTasks, 
     numberOfMetadataForms,
+    allMetaDataForms,
+    username: individual.username,
+    
   };
 });
 
-const style = document.createElement("style");
-style.textContent = `
-  .individual-cards-container {
-    display: flex;
-    flex-wrap: wrap; /* Allows cards to wrap if the row gets too long */
-    gap: 16px; /* Adds spacing between cards */
-    justify-content: flex-start; /* Align cards to the start of the row */
-  }
-  .individual-card {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 16px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    font-family: Arial, sans-serif;
-    flex: 1 1 calc(33% - 16px); /* Adjust to fit 3 cards per row, with gaps */
-    box-sizing: border-box; /* Ensure padding doesn't exceed width */
-  }
-  .individual-card h4 {
-    margin-top: 0;
-    font-size: 1.2em;
-  }
-  .individual-card p {
-    margin: 4px 0;
-  }
-`;
-document.head.appendChild(style);
-
-// Function to render individual cards in a flex container
-function renderIndividualCards(data) {
-  return html`<div class="individual-cards-container">
-    ${data.map(
-      (individual) => html`
-        <div class="individual-card">
-          <h4>${individual.name}</h4>
-          <p><strong>Tasks Completed:</strong> ${individual.numberOfTasksCompleted}</p>
-          <p><strong>Metadata Forms:</strong> ${individual.numberOfMetadataForms}</p>
-        </div>
-      `
-    )}
-  </div>`;
-}
 ```
 
 ```js
@@ -225,60 +198,163 @@ const teamsWithTaskData = groupMembers.reduce((teamsMap, team) => {
 
 // Convert the teams map to an array for rendering
 const teamsDataArray = Array.from(teamsWithTaskData.values());
-
-// Function to render team cards in a flex container
-function renderTeamCards(data) {
-  return html`<div class="team-cards-container">
-    ${data.map(
-      (team) => html`
-        <div class="team-card">
-          <h4>${team.teamName}</h4>
-          <p><strong>Members:</strong> ${team.memberNames.join(", ")}</p>
-          <p><strong>Tasks Completed:</strong> ${team.numberOfTasksCompleted}</p>
-          <p><strong>Metadata Forms:</strong> ${team.numberOfMetadataForms}</p>
-        </div>
-      `
-    )}
-  </div>`;
-}
-
-// Apply flexbox styling for team cards (similar to individual cards)
-style.textContent += `
-  .team-cards-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    justify-content: flex-start;
-  }
-  .team-card {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 16px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    font-family: Arial, sans-serif;
-    flex: 1 1 calc(50% - 16px); /* Adjust to fit 2 cards per row, with gaps */
-    box-sizing: border-box;
-  }
-  .team-card h4 {
-    margin-top: 0;
-    font-size: 1.4em;
-  }
-  .team-card p {
-    margin: 4px 0;
-  }
-`;
 ```
+
+## Overall Statistics
+
+```js
+// Get full names 
+const uniqueMemberNames = new Set(
+  individualsWithTaskData.map((individual) => individual.name)
+);
+
+// Count the unique members
+const numberOfUniqueMembers = uniqueMemberNames.size;
+
+const uniqueTeamNames = new Set(
+  teamsDataArray.map((team) => team.name)
+);
+const numberOfUniqueTeams = teamsWithTaskData.size;
+```
+
+```js
+// Count the total number of rows
+const totalTasks = latestTaskLogs.length;
+
+// Count the number of tasks with a status of "COMPLETED"
+const completedTasks = latestTaskLogs.filter(log => log.taskLogStatus === "COMPLETED").length;
+const completedPercentage = ((completedTasks / totalTasks) * 100).toFixed(1); // Calculate percentage
+
+const dataCompletedTasks = [
+  {
+    values: [completedTasks, totalTasks - completedTasks],
+    labels: ["Completed", "Remaining"],
+    type: "pie",
+    hole: 0.80, // Creates the donut effect
+    textinfo: "none", // Hide default labels
+    hoverinfo: "label+percent",
+    marker: {
+      colors: ["#007bff", "#d3d3d3"], // Colors for completed and remaining
+    },
+  },
+];
+
+// Layout for the donut chart
+const layout = {
+
+  annotations: [
+    {
+      font: {
+        size: 18,
+        color: "#007bff",
+      },
+      showarrow: false,
+      text: `${completedPercentage}%`, // Show percentage in the center
+      x: 0.5,
+      y: 0.5,
+    },
+  ],
+showlegend: false, // Hide legend for simplicity
+  height: 200, // Adjust height for the card
+  width: 200, // Adjust width for the card
+  margin: { t: 10, b: 10, l: 10, r: 10 }, // Tighten the chart's margins
+
+};
+
+// Render the chart
+Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout);
+```
+
+```js
+// Count the total number of form tasks
+const totalForms = latestTaskLogs.filter(log => log.taskLogMetadata !== "No Metadata").length;
+
+// Count the number of tasks with a status of "COMPLETED"
+const completedForms = latestTaskLogs.filter(log => log.taskLogMetadata !== "No Metadata" && log.taskLogStatus === "COMPLETED").length;
+const completedFormPercentage = ((completedForms / totalForms) * 100).toFixed(1); // Calculate percentage
+
+
+const dataCompletedForms = [
+  {
+    values: [completedForms, totalForms - completedForms],
+    labels: ["Completed", "Remaining"],
+    type: "pie",
+    hole: 0.80, // Creates the donut effect
+    textinfo: "none", // Hide default labels
+    hoverinfo: "label+percent",
+    marker: {
+      colors: ["#007bff", "#d3d3d3"], // Colors for completed and remaining
+    },
+  },
+];
+
+// Layout for the donut chart
+const layout = {
+  annotations: [
+    {
+      font: {
+        size: 18,
+        color: "#007bff",
+      },
+      showarrow: false,
+      text: `${completedPercentage}%`, // Show percentage in the center
+      x: 0.5,
+      y: 0.5,
+    },
+  ],
+showlegend: false, // Hide legend for simplicity
+  height: 200, // Adjust height for the card
+  width: 200, // Adjust width for the card
+  margin: { t: 10, b: 10, l: 10, r: 10 }, // Tighten the chart's margins
+
+};
+
+// Render the chart
+Plotly.newPlot("completed-forms-chart", dataCompletedTasks, layout);
+```
+
+<div class="statistics-container">
+  <div class="stat-card">
+    <h3>Total Members</h3>
+    <p id="total-members">${numberOfUniqueMembers}</p>
+  </div>
+  <div class="stat-card">
+    <h3>Total Teams</h3>
+    <p id="total-teams">${numberOfUniqueTeams}</p>
+  </div>
+  <div class="stat-card">
+    <h3>Tasks Completed</h3>
+    <p id="completed-tasks-chart"></p>
+  </div>
+  <div class="stat-card">
+    <h3>Forms Submitted</h3>
+    <p id="completed-forms-chart"></p>
+  </div>
+</div>
+
+## Role Statistics
+
+roles - number of members in each role 
+completed / total tasks
+completed / total forms
 
 ## Individual Members
 <p>
 
-${renderIndividualCards(individualsWithTaskData)}
+drop down of the member selection
+
+render card of information for each person 
+
+table of everything they did with download 
 
 ## Teams
 <p>
 
-${renderTeamCards(teamsDataArray)}
+drop down to select a team 
+
+render cards of information for each person 
+
+table of everything they did with download 
 
 ## View Data by Member or Team
 <p>
@@ -476,4 +552,41 @@ $("#tasks-table").DataTable({
 p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
   max-width: 100%; /* Ensure all these elements can use full width */
 }
+
+.statistics-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+.stat-card {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px 24px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 200px;
+  font-family: Arial, sans-serif;
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.stat-card p {
+  margin: 8px 0 0;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #007bff;
+}
 </style>
+
+## Data Downloads
+
+formatted data of individual and team completed statistics
+formatted data of every task log 

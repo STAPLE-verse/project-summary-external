@@ -169,7 +169,8 @@ cal.paint({
      } },
   subDomain: { 
     type: 'day',
-    label: 'D' },
+    label: 'D',
+    radius: 2 },
   scale: {
     color: {
       scheme: 'Greens',
@@ -178,12 +179,13 @@ cal.paint({
     } },
     date: { 
       start: new Date(d3.min(formattedEvents, d => new Date(d.date))) 
-
       }
 });
 ```
 
 <div id="cal-heatmap"></div>
+<div id="cal-heatmap-legend" style={{ float: 'right' }}></div>
+
 
 <p>
 
