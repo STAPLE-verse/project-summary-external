@@ -102,4 +102,10 @@ const formatDate = (dateString) => {
   color: var(--theme-foreground-muted);
 }
 
+body .card, .observablehq-link {
+  font-size: 18px; /* Change this value to your preferred size */
+  font-family: var(--sans-serif); /* Ensure consistent styling */
+}
+
+
 </style>
