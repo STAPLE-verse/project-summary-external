@@ -2,13 +2,14 @@
 toc: false
 ---
 
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
-```js
+```js load-data
 const jsonData = FileAttachment("./data/project_summary.json").json();
 ```
 
-```js
+```js functions
 // Function to convert a string to Proper Case
 const toProperCase = (str) =>
   str.replace(/\b\w+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
@@ -47,6 +48,26 @@ const formatDate = (dateString) => {
 
 <div class="flex flex-row">
   <div class="card">
+
+  <div class = "statistics-container">
+  <a href="https://app.staple.science">
+  <picture>
+    <source
+      srcSet="img/logo_white_big.png"
+      media="(prefers-color-scheme: dark)"
+      width=200
+    />
+    <img src="img/logo_black_big.png" alt="STAPLE Logo" width=200 />
+  </picture>
+  </a>
+  </div>
+
+  This project summary was created using the STAPLE app. STAPLE empowers researchers to manage their projects with clarity, ensuring open and transparent documentation throughout the project lifecycle. By providing tools for seamless data and metadata tracking, STAPLE supports the principles of open science and fosters collaboration across disciplines. Learn more at <a href="https://staple.science">https://staple.science</a>.
+  </div>
+</div>
+
+<div class="flex flex-row">
+  <div class="card">
     <b>Project Start Date:</b> ${formatDate(jsonData.createdAt)}
     <p><b>Project Metadata and Settings Last Update:</b> ${formatDate(jsonData.updatedAt)}</p>
     <p><b>Project Description:</b> ${jsonData.description || "No Description"}</p>
@@ -55,7 +76,7 @@ const formatDate = (dateString) => {
   </div>
 </div>
 
-<div class="grid grid-cols-4">
+<div class="grid grid-cols-3">
   <div class="card">
     <center><a href="people_roles">Check out the contributors</a></center>
   </div>

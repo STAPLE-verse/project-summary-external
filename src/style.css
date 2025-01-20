@@ -27,7 +27,7 @@
   color: var(--theme-foreground-muted);
 }
 
-body .card, .observablehq-link {
+body .card, .observablehq-link, p {
   font-size: 18px; /* Change this value to your preferred size */
   font-family: var(--sans-serif); /* Ensure consistent styling */
 }
@@ -126,3 +126,40 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
     font-weight: bold; /* Optional: Make it bold */
   }
 
+  .dt-button.btn {
+    margin-left: 10px !important;
+    margin-top: 10px !important;
+    padding: 10px !important;
+    border-radius: 4px;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  
+  .dt-button.btn-primary {
+    background-color: #007bff !important;
+    color: #fff !important;
+  }
+  
+  .dt-button.btn-success {
+    background-color: #28a745 !important;
+    color: #fff !important;
+  }
+
+  .dataTable td, .dataTable th {
+    font-size: 16px; /* Adjust as needed */
+    line-height: 1.5; /* Optional for better readability */
+  }
+
+  .grid .card {
+    margin: 0rem;
+  }
+
+  #observablehq-footer nav {
+    max-width: 100% !important;
+    font-size: 16px;
+  }
+
+  #observablehq-footer a, div, span {
+    font-size: 16px !important;
+    margin-top: 10px;
+  }
