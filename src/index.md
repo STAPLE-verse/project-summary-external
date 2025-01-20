@@ -68,7 +68,7 @@ const formatDate = (dateString) => {
 
 <div class="flex flex-row">
   <div class="card">
-    <b>Project Start Date:</b> ${formatDate(jsonData.createdAt)}
+    <p><b>Project Start Date:</b> ${formatDate(jsonData.createdAt)}</p>
     <p><b>Project Metadata and Settings Last Update:</b> ${formatDate(jsonData.updatedAt)}</p>
     <p><b>Project Description:</b> ${jsonData.description || "No Description"}</p>
     <p><b>Project Metadata:</b></p>
