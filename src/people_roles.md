@@ -1,8 +1,10 @@
 ---
-theme: dashboard
 title: Contributors
 toc: false
 ---
+
+<link rel="stylesheet" href="style.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
 ```js 
 // import data and npm packages 
@@ -225,6 +227,16 @@ const totalTasks = latestTaskLogs.length;
 const completedTasks = latestTaskLogs.filter(log => log.taskLogStatus === "COMPLETED").length;
 const completedPercentage = ((completedTasks / totalTasks) * 100).toFixed(1); // Calculate percentage
 
+const getComputedThemeColors = () => {
+  const root = getComputedStyle(document.documentElement);
+  return {
+    primary: root.getPropertyValue("--primary-color").trim(),
+    secondary: root.getPropertyValue("--secondary-color").trim(),
+  };
+};
+
+const themeColors = getComputedThemeColors();
+
 const dataCompletedTasks = [
   {
     values: [completedTasks, totalTasks - completedTasks],
@@ -234,7 +246,7 @@ const dataCompletedTasks = [
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
-      colors: ["#007bff", "#d3d3d3"], // Colors for completed and remaining
+      colors: [themeColors.primary, themeColors.secondary], 
     },
   },
 ];
@@ -246,7 +258,9 @@ const layout = {
     {
       font: {
         size: 18,
-        color: "#007bff",
+        color: themeColors.primary,
+        weight: "bold", // Make the font bold
+        family: "Arial, sans-serif",
       },
       showarrow: false,
       text: `${completedPercentage}%`, // Show percentage in the center
@@ -255,9 +269,11 @@ const layout = {
     },
   ],
 showlegend: false, // Hide legend for simplicity
-  height: 200, // Adjust height for the card
-  width: 200, // Adjust width for the card
+  height: 150, // Adjust height for the card
+  width: 150, // Adjust width for the card
   margin: { t: 10, b: 10, l: 10, r: 10 }, // Tighten the chart's margins
+  plot_bgcolor: "rgba(0, 0, 0, 0)", // Transparent plot background
+  paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent chart area background
 
 };
 
@@ -294,7 +310,9 @@ const layout = {
     {
       font: {
         size: 18,
-        color: "#007bff",
+        color: themeColors.primary,
+        weight: "bold", // Make the font bold
+        family: "Arial, sans-serif",
       },
       showarrow: false,
       text: `${completedPercentage}%`, // Show percentage in the center
@@ -303,9 +321,11 @@ const layout = {
     },
   ],
 showlegend: false, // Hide legend for simplicity
-  height: 200, // Adjust height for the card
-  width: 200, // Adjust width for the card
+  height: 150, // Adjust height for the card
+  width: 150, // Adjust width for the card
   margin: { t: 10, b: 10, l: 10, r: 10 }, // Tighten the chart's margins
+  plot_bgcolor: "rgba(0, 0, 0, 0)", // Transparent plot background
+  paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent chart area background
 
 };
 
@@ -316,10 +336,12 @@ Plotly.newPlot("completed-forms-chart", dataCompletedTasks, layout);
 <div class="statistics-container">
   <div class="stat-card">
     <h3>Total Members</h3>
+    <i class="fas fa-users" aria-hidden="true"></i>
     <p id="total-members">${numberOfUniqueMembers}</p>
   </div>
   <div class="stat-card">
     <h3>Total Teams</h3>
+    <i class="fas fa-user-friends" aria-hidden="true"></i>
     <p id="total-teams">${numberOfUniqueTeams}</p>
   </div>
   <div class="stat-card">
@@ -536,55 +558,6 @@ $("#tasks-table").DataTable({
 
 
 <div id="table-container"></div>
-
-
-<style>
-.hero, .grid {
-  max-width: none; /* Remove the restriction on these containers */
-  width: 100%; /* Allow full width */
-}
-
-.grid .card {
-  max-width: none; /* Ensure cards are also unrestricted */
-  margin: 1rem; /* Add spacing between cards */
-}
-
-p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
-  max-width: 100%; /* Ensure all these elements can use full width */
-}
-
-.statistics-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: space-around;
-  margin: 20px 0;
-}
-
-.stat-card {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px 24px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 200px;
-  font-family: Arial, sans-serif;
-}
-
-.stat-card h3 {
-  margin: 0;
-  font-size: 1.4rem;
-  color: #333;
-}
-
-.stat-card p {
-  margin: 8px 0 0;
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: #007bff;
-}
-</style>
 
 ## Data Downloads
 

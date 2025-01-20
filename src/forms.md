@@ -4,6 +4,8 @@ title: Contributors
 toc: false
 ---
 
+<link rel="stylesheet" href="style.css">
+
 ```js 
 const jsonData = FileAttachment("./data/project_summary.json").json();
 import * as Plot from "npm:@observablehq/plot";
