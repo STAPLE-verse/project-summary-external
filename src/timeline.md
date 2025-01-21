@@ -169,7 +169,7 @@ cal.paint({
      } },
   subDomain: { 
     type: 'day',
-    label: 'D',
+    //label: 'D',
     radius: 2 },
   scale: {
     color: {
@@ -182,6 +182,10 @@ cal.paint({
       }
 });
 ```
+
+- make scroll and have year at the bottom 
+- add granulatory - but not minute 
+- add a couple color options 
 
 <div id="cal-heatmap"></div>
 <div id="cal-heatmap-legend" style={{ float: 'right' }}></div>

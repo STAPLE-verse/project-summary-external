@@ -136,43 +136,43 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
   font-weight: bold;
 }
 
-  .dt-button.btn {
-    margin-left: 10px !important;
-    margin-top: 10px !important;
-    padding: 10px !important;
-    border-radius: 4px;
-    font-size: 14px;
-    text-transform: uppercase;
-  }
-  
-  .dt-button.btn-primary {
-    background-color: #007bff !important;
-    color: #fff !important;
-  }
-  
-  .dt-button.btn-success {
-    background-color: #28a745 !important;
-    color: #fff !important;
-  }
+.dt-button.btn {
+  margin-left: 10px !important;
+  margin-top: 10px !important;
+  padding: 10px !important;
+  border-radius: 4px;
+  font-size: 14px;
+  text-transform: uppercase;
+}
 
-  .dataTable td, .dataTable th {
-    font-size: 16px; /* Adjust as needed */
-    line-height: 1.5; /* Optional for better readability */
-  }
+.dt-button.btn-primary {
+  background-color: #007bff !important;
+  color: #fff !important;
+}
 
-  .grid .card {
-    margin: 0rem;
-  }
+.dt-button.btn-success {
+  background-color: #28a745 !important;
+  color: #fff !important;
+}
 
-  #observablehq-footer nav {
-    max-width: 100% !important;
-    font-size: 16px;
-  }
+.dataTable td, .dataTable th {
+  font-size: 16px; /* Adjust as needed */
+  line-height: 1.5; /* Optional for better readability */
+}
 
-  #observablehq-footer a, div, span {
-    font-size: 16px !important;
-    margin-top: 10px;
-  }
+.grid .card {
+  margin: 0rem;
+}
+
+#observablehq-footer nav {
+  max-width: 100% !important;
+  font-size: 16px;
+}
+
+#observablehq-footer a div span {
+  font-size: 16px !important;
+  margin-top: 10px;
+}
 
 .card a {
   font-size: 18px;
@@ -188,4 +188,43 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
   font-size: 40px !important;
   color: var(--primary-color-2);
   font-weight: bold; /* Optional: Make it bold */
+}
+
+#members-section {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping for small screens */
+  gap: 20px; /* Add space between cards */
+  justify-content: space-evenly; /* Distribute cards evenly */
+  margin: 20px 0; /* Add margin for spacing */
+}
+
+.small-card {
+  background-color: var(--card-bg); /* Uses your existing light/dark mode variable */
+  border: 1px solid var(--card-border);
+  color: var(--card-text);
+  font-size: 16px;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  padding: 15px; /* Internal padding for content */
+  text-align: center; /* Center-align text and charts */
+  flex: 1 1 300px; /* Allow flexible width with a minimum size */
+  max-width: 150px; /* Optional: Limit maximum width of cards */
+}
+
+.plot-container {
+  display: flex; /* Enable flexbox */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  flex: 1; /* Allow the container to grow and fill available space */
+  height: 100%; /* Ensure it takes the full height of the parent */
+  width: 100%; /* Optional: Ensure it takes the full width of the parent */
+}
+
+/*figure this one out*/
+.user-select-none {
+  z-index: 9999; /* Ensure tooltips appear above other elements */
+  overflow: visible !important;
+  position: relative;
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: auto; /* Enable horizontal scrolling */
 }

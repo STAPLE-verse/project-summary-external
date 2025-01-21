@@ -87,6 +87,42 @@ const getComputedThemeColors = () => {
 const themeColors = getComputedThemeColors();
 ```
 
+```js create-donut-chart-function
+function createDonutChart(data, containerId, titleText) {
+  // Prepare data for Plotly donut chart
+  const chartData = [
+    {
+      values: data.values, // Array of counts (e.g., tasks completed vs. remaining)
+      labels: data.labels, // Array of labels (e.g., ["Completed", "Remaining"])
+      type: "pie",
+      hole: 0.5, // Donut chart effect
+      textinfo: "none", // Hide text in the center
+      hoverinfo: "label+percent", // Show labels and percentages on hover
+      marker: {
+        colors: data.colors || d3.schemeCategory10, // Provide colors or use default scheme
+      },
+    },
+  ];
+
+  // Layout for the chart
+  const chartLayout = {
+    //title: {
+    //  text: titleText, // Title for the chart
+    //  font: { size: 16 },
+    //},
+    showlegend: false, // Show legend
+    height: 100, // Adjust chart height
+    width: 100, // Adjust chart width
+    margin: { t: 10, b: 10, l: 10, r: 10 }, // Add padding for the chart
+    plot_bgcolor: "rgba(0, 0, 0, 0)", // Transparent plot background
+    paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent paper background
+  };
+
+  // Render the chart in the specified container
+  Plotly.newPlot(containerId, chartData, chartLayout);
+}
+```
+
 ```js get-people-roles-tasks
 // Extract project members where there is exactly one user in the `users` array
 const filteredMembers = jsonData.projectMembers.filter(
@@ -374,9 +410,6 @@ const dataCompletedForms = [
     },
   },
 ];
-
-console.log(themeColors.primary4)
-
 // Layout for the donut chart
 const layout = {
   annotations: [
@@ -388,7 +421,7 @@ const layout = {
         family: "Arial, sans-serif",
       },
       showarrow: false,
-      text: `${completedPercentage}%`, // Show percentage in the center
+      text: `${completedFormPercentage}%`, // Show percentage in the center
       x: 0.5,
       y: 0.5,
     },
@@ -523,6 +556,86 @@ $("#role-table").DataTable({
 });
 ```
 
+```js get-roles-individuals
+const rolesByIndividual = projectMembersDataFrame.map((individual) => {
+  // Extract roles assigned to the individual
+  const individualRoles = individual.roles.split(", ").map((role) => ({
+    name: role.trim(),
+    source: "Assigned",
+  }));
+
+  // Extract roles from tasks completed by the individual
+  const taskRoles = latestTaskLogs
+    .filter((log) => log.assignedToId === individual.projectMemberId)
+    .flatMap((log) => log.roles.map((role) => ({ name: role.name, source: "Task" })));
+
+  // Combine and count role occurrences
+  const roleCounts = [...individualRoles, ...taskRoles].reduce((acc, role) => {
+    acc[role.name] = (acc[role.name] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Construct the individual's full name
+  const fullName = `${individual.firstName?.trim() || "Not Provided"} ${
+    individual.lastName?.trim() || "Not Provided"
+  }`.trim();
+
+  const formattedName =
+    fullName === "Not Provided Not Provided"
+      ? `No Name Provided (${individual.username || "No Username"})`
+      : `${fullName} (${individual.username || "No Username"})`;
+
+  return {
+    projectMemberId: individual.projectMemberId,
+    name: formattedName,
+    roles: Object.entries(roleCounts).map(([roleName, count]) => ({
+      name: roleName,
+      count,
+    })),
+  };
+});
+
+console.log(rolesByIndividual)
+```
+
+```js make-donuts-roles-individuals
+rolesByIndividual.forEach((member) => {
+  // Prepare data for the chart
+  const data = {
+    values: member.roles.map((role) => role.count), // Role counts
+    labels: member.roles.map((role) => role.name), // Role names
+    colors: d3.schemeCategory10, // Color palette
+  };
+
+  // Create the card container
+  const card = document.createElement("div");
+  card.className = "small-card"; // Apply a predefined card style
+
+  // Add the member's name as a title
+  const title = document.createElement("h3");
+  title.textContent = member.name;
+  card.appendChild(title);
+
+  // Create a container for the chart
+  const containerId = `member-role-chart-${member.projectMemberId}`;
+  const chartDiv = document.createElement("div");
+  chartDiv.id = containerId; // Assign a unique ID for the chart container
+  card.appendChild(chartDiv);
+
+  // Append the card to the main section
+  const memberRoleChartContainer = document.getElementById("members-section");
+  if (memberRoleChartContainer) {
+    memberRoleChartContainer.appendChild(card);
+
+    // Now render the chart into the container
+    createDonutChart(data, containerId, `${member.name}`);
+  } else {
+    console.error("Main container for member charts not found!");
+  }
+});
+```
+  
+
 <div class ="card">
 
   <div class="card-title">
@@ -572,12 +685,13 @@ $("#role-table").DataTable({
   </div>
 </div>
 
-<div class ="card">
-
+<div class="card">
   <div class="card-title" id="members">
     <h1>Members</h1>
+    - scroll the box or collapse the box? 
+    - make each of these clickable to show information for each member's information
+    <div id="members-section"></div> <!-- Placeholder for dynamic content -->
   </div>
-
 </div>
 
 <div class ="card">
