@@ -39,9 +39,17 @@ body .card, .observablehq-link, p {
   --card-border-dark: #444; /* Dark mode border */
   --card-text-light: #333; /* Light mode text */
   --card-text-dark: #ddd; /* Dark mode text */
-  --primary-color-light: #007bff; /* Light mode primary color */
+
+  --primary-color-light: #1f77b4; /* Light mode primary color */
+  --primary-color-light-2: #ff7f0e; /* Light mode primary color */
+  --primary-color-light-3: #2ca20c; /* Light mode primary color */
+  --primary-color-light-4: #d62728; /* Light mode primary color */
   --secondary-color-light: #d3d3d3; /* Light mode secondary color */
-  --primary-color-dark: #4da3ff; /* Dark mode primary color */
+
+  --primary-color-dark: #1f77b4; /* Dark mode primary color */
+  --primary-color-dark-2: #ff7f0e; /* Dark mode primary color */
+  --primary-color-dark-3: #2ca20c; /* Light mode primary color */
+  --primary-color-dark-4: #d62728; /* Light mode primary color */
   --secondary-color-dark: #3a3b3c; /* Dark mode secondary color */
 }
 
@@ -51,6 +59,9 @@ body .card, .observablehq-link, p {
     --card-border: var(--card-border-dark);
     --card-text: var(--card-text-dark);
     --primary-color: var(--primary-color-dark);
+    --primary-color-2: var(--primary-color-dark-2);
+    --primary-color-3: var(--primary-color-dark-3);
+    --primary-color-4: var(--primary-color-dark-4);
     --secondary-color: var(--secondary-color-dark);
   }
 }
@@ -61,6 +72,9 @@ body .card, .observablehq-link, p {
     --card-border: var(--card-border-light);
     --card-text: var(--card-text-light);
     --primary-color: var(--primary-color-light);
+    --primary-color-2: var(--primary-color-light-2);
+    --primary-color-3: var(--primary-color-light-3);
+    --primary-color-4: var(--primary-color-light-4);
     --secondary-color: var(--secondary-color-light);
   }
 }
@@ -95,7 +109,7 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
     padding: 16px;
     display: flex; /* Enable flexbox */
     flex-direction: column; /* Align items in a column */
-    justify-content: center; /* Center content vertically */
+    justify-content: space-between; /* Center content vertically */
     align-items: center; /* Center content horizontally */
     text-align: center; /* Center-align text inside the card */
     height: 200px; /* Adjust height as needed */
@@ -106,13 +120,14 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
 
 .stat-card i {
     font-size: 3rem; /* Adjust icon size */
-    margin-top: 12px !important;
     color: var(--primary-color);
+    margin-bottom: 10px;
   }
 
 .stat-card h3 {
   margin: 0;
   font-size: 1.4rem;
+  font-weight: bold;
 }
 
 .stat-card p {
@@ -120,11 +135,6 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
   font-size: 1.6rem;
   font-weight: bold;
 }
-
-#total-members, #total-teams {
-    color: var(--primary-color);
-    font-weight: bold; /* Optional: Make it bold */
-  }
 
   .dt-button.btn {
     margin-left: 10px !important;
@@ -163,3 +173,19 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
     font-size: 16px !important;
     margin-top: 10px;
   }
+
+.card a {
+  font-size: 18px;
+}
+
+#stat-number-1 {
+  font-size: 40px !important;
+  color: var(--primary-color);
+  font-weight: bold; /* Optional: Make it bold */
+}
+
+#stat-number-2 {
+  font-size: 40px !important;
+  color: var(--primary-color-2);
+  font-weight: bold; /* Optional: Make it bold */
+}

@@ -3,10 +3,21 @@ title: Contributors
 toc: false
 ---
 
-<link rel="stylesheet" href="style.css">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<link rel="stylesheet" href="style.css">
 
-```js 
+<div class="hero">
+ <h1>Contributor Information</h1>
+</div>
+
+```js  import-packages
 // import data and npm packages 
 const jsonData = FileAttachment("./data/project_summary.json").json();
 import * as Plot from "npm:@observablehq/plot";
@@ -15,7 +26,68 @@ import * as Inputs from "npm:@observablehq/inputs";
 import Plotly from "npm:plotly.js-dist";
 ```
 
-```js
+```js functions
+function createHtmlTable(data, containerId, tableId) {
+  const container = document.getElementById(containerId);
+
+  if (!container) {
+    console.error(`Container with id "${containerId}" not found.`);
+    return;
+  }
+
+  // Create the table
+  const table = document.createElement("table");
+  table.id = tableId; // Assign the provided tableId
+  table.className = "custom-table";
+
+  // Create table header
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+
+  // Use the keys of the first object in the data as headers
+  const headers = Object.keys(data[0]);
+  headers.forEach((key) => {
+    const th = document.createElement("th");
+    th.textContent = key.replace(/([A-Z])/g, " $1"); // Add spaces before uppercase letters
+    headerRow.appendChild(th);
+  });
+
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Create table body
+  const tbody = document.createElement("tbody");
+
+  data.forEach((item) => {
+    const row = document.createElement("tr");
+    headers.forEach((key) => {
+      const td = document.createElement("td");
+      td.textContent = item[key] || "N/A"; // Fallback to "N/A" if the value is null/undefined
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(tbody);
+
+  // Clear any existing content in the container and add the table
+  container.innerHTML = "";
+  container.appendChild(table);
+}
+
+const getComputedThemeColors = () => {
+  const root = getComputedStyle(document.documentElement);
+  return {
+    primary3: root.getPropertyValue("--primary-color-3").trim(),
+    primary4: root.getPropertyValue("--primary-color-4").trim(),
+    secondary: root.getPropertyValue("--secondary-color").trim(),
+  };
+};
+
+const themeColors = getComputedThemeColors();
+```
+
+```js get-people-roles-tasks
 // Extract project members where there is exactly one user in the `users` array
 const filteredMembers = jsonData.projectMembers.filter(
   (member) => member.name === null
@@ -55,8 +127,44 @@ const groupMembersDataFrame = groupMembers.flatMap((member) => {
   }));
 });
 
+// Extract tasks data and expand to include task logs
+const tasksDataFrame = jsonData.tasks.flatMap((task) =>
+  task.taskLogs
+    //.filter((log) => log.completedById !== null) // Skip logs where completedById is null
+    .map((log) => ({
+      taskId: task.id,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      createdById: task.createdById,
+      formVersionId: task.formVersionId || "Not Provided",
+      deadline: task.deadline || "No Deadline",
+      name: task.name || "Unnamed Task",
+      description: task.description || "No Description",
+      status: task.status || "Unknown Status",
+      elementName: task.element?.name || "No Element Name",
+      elementDescription: task.element?.description || "No Element Description",
+      taskLogCreatedAt: log.createdAt,
+      taskLogStatus: log.status || "Unknown Status",
+      taskLogMetadata: log.metadata || "No Metadata",
+      completedById: log.completedById || "Task Created",
+      assignedToId: log.assignedToId,
+      roles: task.roles.map((role) => ({
+        id: role.id,
+        name: role.name,
+        description: role.description,
+        taxonomy: role.taxonomy,
+      })),
+    }))
+);
+
 // Extract all roles from project members
-const allRoles = jsonData.projectMembers.flatMap((member) => member.roles);
+const memberRoles = jsonData.projectMembers.flatMap((member) => member.roles);
+
+// Extract all roles from tasks
+const taskRoles = tasksDataFrame.flatMap((task) => task.roles);
+
+// Combine all roles from both sources
+const allRoles = [...memberRoles, ...taskRoles];
 
 // Deduplicate roles based on `name`, `description`, and `taxonomy`
 const uniqueRolesDataFrame = Array.from(
@@ -75,32 +183,9 @@ const rolesDataFrame = uniqueRolesDataFrame.map((role) => ({
   taxonomy: role.taxonomy || "No Taxonomy",
 }));
 
-// Extract tasks data and expand to include task logs
-const tasksDataFrame = jsonData.tasks.flatMap((task) =>
-  task.taskLogs
-    .filter((log) => log.completedById !== null) // Skip logs where completedById is null
-    .map((log) => ({
-      taskId: task.id,
-      createdAt: task.createdAt,
-      updatedAt: task.updatedAt,
-      createdById: task.createdById,
-      formVersionId: task.formVersionId || "Not Provided",
-      deadline: task.deadline || "No Deadline",
-      name: task.name || "Unnamed Task",
-      description: task.description || "No Description",
-      status: task.status || "Unknown Status",
-      elementName: task.element?.name || "No Element Name",
-      elementDescription: task.element?.description || "No Element Description",
-      taskLogCreatedAt: log.createdAt,
-      taskLogStatus: log.status || "Unknown Status",
-      taskLogMetadata: log.metadata || "No Metadata",
-      completedById: log.completedById,
-      assignedToId: log.assignedToId,
-    }))
-);
 ```
 
-```js
+```js contributor-task-summaries
 // Deduplicate task logs to only include the latest log for each combination of `taskId` and `assignedToId`
 const latestTaskLogs = Array.from(
   tasksDataFrame
@@ -158,10 +243,9 @@ const individualsWithTaskData = projectMembersDataFrame.map((individual) => {
     
   };
 });
-
 ```
 
-```js
+```js team-task-summaries
 // Group task logs by team ID (assignedToId) and calculate completed tasks and metadata forms
 const teamsWithTaskData = groupMembers.reduce((teamsMap, team) => {
   // Initialize or update team entry
@@ -202,9 +286,7 @@ const teamsWithTaskData = groupMembers.reduce((teamsMap, team) => {
 const teamsDataArray = Array.from(teamsWithTaskData.values());
 ```
 
-## Overall Statistics
-
-```js
+```js member-names
 // Get full names 
 const uniqueMemberNames = new Set(
   individualsWithTaskData.map((individual) => individual.name)
@@ -219,23 +301,13 @@ const uniqueTeamNames = new Set(
 const numberOfUniqueTeams = teamsWithTaskData.size;
 ```
 
-```js
+```js overall-tasks-statistics
 // Count the total number of rows
 const totalTasks = latestTaskLogs.length;
 
 // Count the number of tasks with a status of "COMPLETED"
 const completedTasks = latestTaskLogs.filter(log => log.taskLogStatus === "COMPLETED").length;
 const completedPercentage = ((completedTasks / totalTasks) * 100).toFixed(1); // Calculate percentage
-
-const getComputedThemeColors = () => {
-  const root = getComputedStyle(document.documentElement);
-  return {
-    primary: root.getPropertyValue("--primary-color").trim(),
-    secondary: root.getPropertyValue("--secondary-color").trim(),
-  };
-};
-
-const themeColors = getComputedThemeColors();
 
 const dataCompletedTasks = [
   {
@@ -246,7 +318,7 @@ const dataCompletedTasks = [
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
-      colors: [themeColors.primary, themeColors.secondary], 
+      colors: [themeColors.primary3, themeColors.secondary], 
     },
   },
 ];
@@ -257,8 +329,8 @@ const layout = {
   annotations: [
     {
       font: {
-        size: 18,
-        color: themeColors.primary,
+        size: 20,
+        color: themeColors.primary3,
         weight: "bold", // Make the font bold
         family: "Arial, sans-serif",
       },
@@ -281,14 +353,13 @@ showlegend: false, // Hide legend for simplicity
 Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout);
 ```
 
-```js
+```js overall-form-statistics
 // Count the total number of form tasks
 const totalForms = latestTaskLogs.filter(log => log.taskLogMetadata !== "No Metadata").length;
 
 // Count the number of tasks with a status of "COMPLETED"
 const completedForms = latestTaskLogs.filter(log => log.taskLogMetadata !== "No Metadata" && log.taskLogStatus === "COMPLETED").length;
 const completedFormPercentage = ((completedForms / totalForms) * 100).toFixed(1); // Calculate percentage
-
 
 const dataCompletedForms = [
   {
@@ -299,18 +370,20 @@ const dataCompletedForms = [
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
-      colors: ["#007bff", "#d3d3d3"], // Colors for completed and remaining
+      colors: [themeColors.primary4, themeColors.secondary], 
     },
   },
 ];
+
+console.log(themeColors.primary4)
 
 // Layout for the donut chart
 const layout = {
   annotations: [
     {
       font: {
-        size: 18,
-        color: themeColors.primary,
+        size: 20,
+        color: themeColors.primary4,
         weight: "bold", // Make the font bold
         family: "Arial, sans-serif",
       },
@@ -330,35 +403,206 @@ showlegend: false, // Hide legend for simplicity
 };
 
 // Render the chart
-Plotly.newPlot("completed-forms-chart", dataCompletedTasks, layout);
+Plotly.newPlot("completed-forms-chart", dataCompletedForms, layout);
 ```
 
-<div class="statistics-container">
-  <div class="stat-card">
-    <h3>Total Members</h3>
-    <i class="fas fa-users" aria-hidden="true"></i>
-    <p id="total-members">${numberOfUniqueMembers}</p>
+```js overall-role-statistics
+// Step 1: Count roles in latestTaskLogs
+const roleCountsFromTasks = latestTaskLogs.reduce((acc, log) => {
+  log.roles.forEach((role) => {
+    acc[role.name] = (acc[role.name] || 0) + 1; // Increment count for this role
+  });
+  return acc;
+}, {});
+
+// Step 2: Count roles in projectMembersDataFrame
+const roleCountsFromMembers = projectMembersDataFrame.reduce((acc, member) => {
+  member.roles.split(", ").forEach((role) => {
+    acc[role] = (acc[role] || 0) + 1; // Increment count for this role
+  });
+  return acc;
+}, {});
+
+// Step 3: Merge counts into uniqueRolesDataFrame
+const updatedRolesDataFrame = rolesDataFrame.map((role) => {
+  const countFromTasks = roleCountsFromTasks[role.name] || 0;
+  const countFromMembers = roleCountsFromMembers[role.name] || 0;
+
+  return {
+    ...role,
+    countInTasks: countFromTasks, // Add count from latestTaskLogs
+    countInMembers: countFromMembers, // Add count from projectMembersDataFrame
+    totalCount: countFromTasks + countFromMembers, // Total occurrences
+  };
+});
+
+// Extract labels (role names) and values (total counts) from updatedRolesDataFrame
+const roleLabels = updatedRolesDataFrame.map((role) => role.name);
+const roleValues = updatedRolesDataFrame.map((role) => role.totalCount);
+
+// Data for Plotly donut chart
+const roleData = [
+  {
+    values: roleValues,
+    labels: roleLabels,
+    type: "pie",
+    hole: 0.5, // Creates the donut chart effect
+    textinfo: "none", // Hide default labels (percentages or values inside the chart)
+    hoverinfo: "label+percent", // Show detailed hover information
+    marker: {
+      colors: d3.schemeCategory10, // Use a predefined color scheme for variety
+    },
+  },
+];
+
+// Layout for the donut chart
+const roleLayout = {
+  showlegend: false, // Show legend
+  height: 150, // Adjust chart height
+  width: 150, // Adjust chart width
+  margin: { t: 10, b: 10, l: 10, r: 10 }, // Add margins
+  plot_bgcolor: "rgba(0, 0, 0, 0)", // Transparent plot background
+  paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent paper background
+};
+
+// Render the donut chart
+Plotly.newPlot("roles-donut-chart", roleData, roleLayout);
+```
+
+```js create-role-table
+createHtmlTable(updatedRolesDataFrame, "role-table-container", "role-table");
+
+$("#role-table").DataTable({
+  paging: true,
+  searching: true,
+  ordering: true,
+  responsive: true,
+  scrollX: true,
+  dom: "frtipB", // Enable Buttons (B) in the DOM
+  buttons: [
+    {
+      extend: "csvHtml5",
+      text: "Download CSV", // Customize button text
+      title: "Roles_Data", // Name of the downloaded file
+      className: "btn btn-primary", // Optional: Add a CSS class
+    },
+    {
+      extend: "excelHtml5",
+      text: "Download Excel",
+      title: "Roles_Data", // Name of the downloaded file
+      className: "btn btn-success", // Optional: Add a CSS class
+    },
+  ],
+  columns: [
+    { data: "name", title: "Role Name", visible: true }, // Renamed column
+    { data: "description", title: "Description", visible: true }, 
+    { data: "taxonomy", title: "Taxonomy", visible: true }, 
+    { data: "countInTasks", title: "Task Count", visible: true }, 
+    { data: "countInMembers", title: "Member Count", visible: true }, 
+    { data: "totalCount", title: "Total Count", visible: false }, 
+  ],
+  language: {
+    search: "Search All: ", // Customize the label for the search box
+  },
+  initComplete: function () {
+    // Optional: Add custom search inputs for each column
+    this.api()
+      .columns()
+      .every(function () {
+        const column = this;
+        const header = $(column.header());
+        const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+          .appendTo($(header).empty())
+          .on("keyup change clear", function () {
+            if (column.search() !== this.value) {
+              column.search(this.value).draw();
+            }
+          });
+      });
+  },
+});
+```
+
+<div class ="card">
+
+  <div class="card-title">
+    <h1>Overall Statistics</h1>
   </div>
-  <div class="stat-card">
-    <h3>Total Teams</h3>
-    <i class="fas fa-user-friends" aria-hidden="true"></i>
-    <p id="total-teams">${numberOfUniqueTeams}</p>
-  </div>
-  <div class="stat-card">
-    <h3>Tasks Completed</h3>
-    <p id="completed-tasks-chart"></p>
-  </div>
-  <div class="stat-card">
-    <h3>Forms Submitted</h3>
-    <p id="completed-forms-chart"></p>
+  
+  <p>This page displays statistics and information about each contributor including tasks, task logs, and assigned roles. Click on each box to learn more and view the data. </p>
+
+  <div class="statistics-container">
+    <a href="#members" class="card-link">
+      <div class="stat-card">
+        <h3>Total Members</h3>
+        <p id="stat-number-1">${numberOfUniqueMembers}</p>
+        <i class="fas fa-users" id="stat-number-1" aria-hidden="true"></i>
+      </div>
+    </a>
+
+  <a href="#teams" class="card-link">
+    <div class="stat-card">
+      <h3>Total Teams</h3>
+      <p id="stat-number-2">${numberOfUniqueTeams}</p>
+      <i class="fas fa-user-friends" id="stat-number-2" aria-hidden="true"></i>
+    </div>
+  </a>
+
+  <a href="#roles" class="card-link">
+    <div class="stat-card">
+      <h3>Roles</h3>
+      <p id="roles-donut-chart"></p>
+    </div>
+  </a>
+
+  <a href="elements_tasks" class="card-link">
+    <div class="stat-card">
+      <h3>Tasks Completed</h3>
+      <p id="completed-tasks-chart"></p>
+    </div>
+  </a>
+
+  <a href="forms" class="card-link">
+    <div class="stat-card">
+      <h3>Forms Submitted</h3>
+      <p id="completed-forms-chart"></p>
+    </div>
+  </a>
+
   </div>
 </div>
 
-## Role Statistics
+<div class ="card">
 
-roles - number of members in each role 
-completed / total tasks
-completed / total forms
+  <div class="card-title" id="members">
+    <h1>Members</h1>
+  </div>
+
+</div>
+
+<div class ="card">
+
+  <div class="card-title" id="teams">
+    <h1>Teams</h1>
+  </div>
+
+</div>
+
+<div class ="card">
+
+  <div class="card-title" id="roles">
+    <h1>Roles</h1>
+    <p>This section contains the summary information of all roles summarized across tasks and members.</p>
+
+  <div id="role-table-container"></div>
+
+  </div>
+
+</div>
+
+
+## Role Information
+
 
 ## Individual Members
 <p>
@@ -457,62 +701,6 @@ Array.from(
 ```
 
 ```js
-const tableOutput = view(
-    Inputs.table(
-        tasksWithNames.filter((d) => d.assignedTo === selectDropDown)),
-        { sort: "name", select: false }
-        )
-```
-
-```js
-function createHtmlTable(data, containerId, tableId) {
-  const container = document.getElementById(containerId);
-
-  if (!container) {
-    console.error(`Container with id "${containerId}" not found.`);
-    return;
-  }
-
-  // Create the table
-  const table = document.createElement("table");
-  table.id = tableId; // Assign the provided tableId
-  table.className = "custom-table";
-
-  // Create table header
-  const thead = document.createElement("thead");
-  const headerRow = document.createElement("tr");
-
-  // Use the keys of the first object in the data as headers
-  const headers = Object.keys(data[0]);
-  headers.forEach((key) => {
-    const th = document.createElement("th");
-    th.textContent = key.replace(/([A-Z])/g, " $1"); // Add spaces before uppercase letters
-    headerRow.appendChild(th);
-  });
-
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-
-  // Create table body
-  const tbody = document.createElement("tbody");
-
-  data.forEach((item) => {
-    const row = document.createElement("tr");
-    headers.forEach((key) => {
-      const td = document.createElement("td");
-      td.textContent = item[key] || "N/A"; // Fallback to "N/A" if the value is null/undefined
-      row.appendChild(td);
-    });
-    tbody.appendChild(row);
-  });
-
-  table.appendChild(tbody);
-
-  // Clear any existing content in the container and add the table
-  container.innerHTML = "";
-  container.appendChild(table);
-}
-
 // Call the function to create the table
 const filteredData = tasksWithNames.filter(
   (task) => task.assignedTo === selectDropDown
@@ -548,14 +736,6 @@ $("#tasks-table").DataTable({
 <p>
 
 ## Data Table Version
-
-<!-- Load jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Load DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
 
 <div id="table-container"></div>
 
