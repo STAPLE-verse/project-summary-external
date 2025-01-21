@@ -169,7 +169,8 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
   font-size: 16px;
 }
 
-#observablehq-footer a div span {
+
+#observablehq-footer span {
   font-size: 16px !important;
   margin-top: 10px;
 }

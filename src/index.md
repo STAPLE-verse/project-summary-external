@@ -42,6 +42,26 @@ const formatDate = (dateString) => {
 };
 ```
 
+```js download data
+// Create a Blob from the JSON data
+const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+
+// Generate a temporary URL for the Blob
+const jsonUrl = URL.createObjectURL(jsonBlob);
+
+// Create a dynamic download link
+const downloadLink = document.createElement("a");
+downloadLink.href = jsonUrl; // Use the generated Blob URL
+downloadLink.textContent = "Download Data";
+downloadLink.download = "project_summary.json"; // Suggest a filename for download
+
+// Insert the link into the appropriate DOM element
+const linkContainer = document.querySelector("#dynamic-download");
+if (linkContainer) {
+  linkContainer.appendChild(downloadLink);
+}
+```
+
 <div class="hero">
   <h1>${jsonData.name || "Unnamed Project"}</h1>
 </div>
@@ -90,6 +110,6 @@ const formatDate = (dateString) => {
     <center><a href="timeline">Check out the timeline</a></center>
   </div>
     <div class="card">
-    <center><a href="./_file/data/project_summary.e372cc7d.json">Download Data</a></center>
+    <center><a id="dynamic-download"></a></center>
   </div>
 </div>

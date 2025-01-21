@@ -60,6 +60,27 @@ const formatDate = (dateString) => {
 return {toProperCase,metadataContainer,formatDate};
 }});
 
+define({id: "c0138030", inputs: ["jsonData"], outputs: ["jsonBlob","jsonUrl","downloadLink","linkContainer"], body: (jsonData) => {
+// Create a Blob from the JSON data
+const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+
+// Generate a temporary URL for the Blob
+const jsonUrl = URL.createObjectURL(jsonBlob);
+
+// Create a dynamic download link
+const downloadLink = document.createElement("a");
+downloadLink.href = jsonUrl; // Use the generated Blob URL
+downloadLink.textContent = "Download Data";
+downloadLink.download = "project_summary.json"; // Suggest a filename for download
+
+// Insert the link into the appropriate DOM element
+const linkContainer = document.querySelector("#dynamic-download");
+if (linkContainer) {
+  linkContainer.appendChild(downloadLink);
+}
+return {jsonBlob,jsonUrl,downloadLink,linkContainer};
+}});
+
 define({id: "f3af0daf", mode: "inline", inputs: ["jsonData","display"], body: async (jsonData,display) => {
 display(await(
 jsonData.name || "Unnamed Project"
@@ -111,9 +132,10 @@ metadataContainer
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<link rel="stylesheet" href="./_file/style.d25d8d18.css">
+<link rel="stylesheet" href="./_file/style.33474ede.css">
 <div class="observablehq observablehq--block"><!--:d099dc38:--></div>
 <div class="observablehq observablehq--block"><!--:41e32c06:--></div>
+<div class="observablehq observablehq--block"><!--:c0138030:--></div>
 <div class="hero">
   <h1><observablehq-loading></observablehq-loading><!--:f3af0daf:--></h1>
 </div>
@@ -153,13 +175,13 @@ metadataContainer
     <center><a href="./timeline">Check out the timeline</a></center>
   </div>
     <div class="card">
-    <center><a href="./_file/data/project_summary.e372cc7d.json">Download Data</a></center>
+    <center><a id="dynamic-download"></a></center>
   </div>
 </div>
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="next" href="./people_roles"><span>Contributors</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-01-20T21:40:27">Jan 20, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-01-20T21:58:24">Jan 20, 2025</a>.</div>
 </footer>
 </div>
 </body>
