@@ -90,6 +90,6 @@ const formatDate = (dateString) => {
     <center><a href="timeline">Check out the timeline</a></center>
   </div>
     <div class="card">
-    <center><a href="./_file/data/project_summary.json">Download Data</a></center>
+    <center><a href="./_file/data/project_summary.e372cc7d.json">Download Data</a></center>
   </div>
 </div>
