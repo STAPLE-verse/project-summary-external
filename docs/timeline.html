@@ -15,7 +15,7 @@
 <link rel="modulepreload" href="./_observablehq/stdlib.95bfbf7e.js">
 <link rel="modulepreload" href="./_npm/@observablehq/plot@0.6.16/e828d8c8.js">
 <link rel="modulepreload" href="./_npm/d3@7.9.0/7055d4c5.js">
-<link rel="modulepreload" href="./_npm/htl@0.3.1/063eb405.js">
+<link rel="modulepreload" href="./_npm/cal-heatmap@4.2.4/fd3e0f70.js">
 <link rel="modulepreload" href="./_npm/isoformat@0.2.1/c68fbd73.js">
 <link rel="modulepreload" href="./_npm/interval-tree-1d@1.0.4/a62ae5ce.js">
 <link rel="modulepreload" href="./_npm/d3-array@3.2.4/e95f898e.js">
@@ -60,45 +60,11 @@ import {registerFile} from "./_observablehq/stdlib.95bfbf7e.js";
 
 registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.8b37e4a5.json","lastModified":1736116661396,"size":16035});
 
-define({id: "ffe673e6", inputs: ["htl"], outputs: ["Plot","d3","calendar","MonthLine"], body: async (htl) => {
-const [Plot, d3] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js")]);
+define({id: "23c74db4", outputs: ["Plot","d3","CalHeatmap"], body: async () => {
+const [Plot, d3, {default: CalHeatmap}] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js"), import("./_npm/cal-heatmap@4.2.4/fd3e0f70.js")]);
 // imports 
 
-// calendar function
-function calendar({
-  date = Plot.identity,
-  inset = 0.5,
-  ...options
-} = {}) {
-  let D;
-  return {
-    fy: {transform: (data) => (D = Plot.valueof(data, date, Array)).map((d) => new Date(d).getUTCFullYear())},
-    x: {transform: () => D.map((d) => d3.utcWeek.count(d3.utcYear(d), d))},
-    y: {transform: () => D.map((d) => new Date(d).getUTCDay())},
-    inset,
-    ...options
-  };
-}
-
-// month line function 
-class MonthLine extends Plot.Mark {
-  static defaults = {stroke: "currentColor", strokeWidth: 1};
-  constructor(data, options = {}) {
-    const {x, y} = options;
-    super(data, {x: {value: x, scale: "x"}, y: {value: y, scale: "y"}}, options, MonthLine.defaults);
-  }
-  render(index, {x, y}, {x: X, y: Y}, dimensions) {
-    const {marginTop, marginBottom, height} = dimensions;
-    const dx = x.bandwidth(), dy = y.bandwidth();
-    return htl.svg`<path fill=none stroke=${this.stroke} stroke-width=${this.strokeWidth} d=${
-      Array.from(index, (i) => `${Y[i] > marginTop + dy * 1.5 // is the first day a Monday?
-          ? `M${X[i] + dx},${marginTop}V${Y[i]}h${-dx}` 
-          : `M${X[i]},${marginTop}`}V${height - marginBottom}`)
-        .join("")
-    }>`;
-  }
-}
-return {Plot,d3,calendar,MonthLine};
+return {Plot,d3,CalHeatmap};
 }});
 
 define({id: "32820104", inputs: ["FileAttachment"], outputs: ["jsonData"], body: (FileAttachment) => {
@@ -222,7 +188,7 @@ timelineContainer.appendChild(list);
 return {tasks,projectMembers,projectName,projectCreatedAt,projectMembersById,timelineEvents,timelineContainer,list};
 }});
 
-define({id: "3e027651", inputs: ["d3","timelineEvents","Plot","calendar"], outputs: ["eventsByDate","startDate","endDate","allDates","eventsByDateMap","completeEventsCount","heatmapPlot"], body: (d3,timelineEvents,Plot,calendar) => {
+define({id: "9f70f791", inputs: ["d3","timelineEvents"], outputs: ["eventsByDate","formattedEvents"], body: (d3,timelineEvents) => {
 // Aggregate events by date
 const eventsByDate = d3.rollups(
   timelineEvents,
@@ -230,123 +196,45 @@ const eventsByDate = d3.rollups(
   (d) => d.dateFormat // Group by the formatted date
 );
 
-// Generate a full range of dates for the year(s)
-const startDate = d3.utcYear(new Date(d3.min(timelineEvents, (d) => new Date(d.date))));
-const endDate = d3.utcYear.offset(d3.utcYear(new Date(d3.max(timelineEvents, (d) => new Date(d.date)))), 1) - 1;
-
-// Generate all dates from startDate to endDate
-const allDates = d3.utcDays(startDate, endDate);
-
-// Map all dates to include counts, defaulting to zero for missing dates
-const eventsByDateMap = new Map(eventsByDate); // Convert aggregated data to a Map for quick lookup
-const completeEventsCount = allDates.map((date) => ({
-  date: date.toISOString().split("T")[0],
-  count: eventsByDateMap.get(date.toISOString().split("T")[0]) || 0
+const formattedEvents = eventsByDate.map(([date, value]) => ({
+  date,
+  value
 }));
-
-const heatmapPlot = (() => {
-  const start = d3.utcDay.offset(d3.min(completeEventsCount, (d) => new Date(d.date)));
-  const end = d3.utcDay.offset(d3.max(completeEventsCount, (d) => new Date(d.date)));
-
-  // Dynamically calculate width
-  const containerWidth = document.getElementById("plot-container").clientWidth || 1152;
-  const dynamicFontSize = Math.max(12, Math.round(containerWidth / 100)); // Scale font size dynamically
-
-  return Plot.plot({
-    width: containerWidth, // Use dynamic width
-    height: d3.utcYear.count(start, end) * 200,
-    axis: null,
-    padding: 0,
-    x: {
-      domain: d3.range(53) // 53 weeks in a year
-    },
-    y: {
-      axis: "left",
-      domain: [-1, 0, 1, 2, 3, 4, 5, 6], // Include all days of the week
-      ticks: [0, 1, 2, 3, 4, 5, 6], // Add ticks for all days
-      tickSize: 0,
-      tickFormat: Plot.formatWeekday(), // Format as weekdays
-      fontSize: dynamicFontSize
-    },
-    fy: {
-      padding: 0.1,
-      reverse: true
-    },
-    color: {
-      //scheme: "pubugn",
-      domain: [0, d3.max(completeEventsCount, (d) => d.count)], // Dynamic color scaling
-      legend: true,
-      label: "Number of Events",
-      fontSize: dynamicFontSize,
-      range: ["#FFFFFF", "#336699"]
-    },
-    marks: [
-      // Cell marks for event counts
-      Plot.cell(
-        completeEventsCount,
-        calendar({
-          fontSize: dynamicFontSize, 
-          date: (d) => new Date(d.date),
-          fill: (d) => d.count, // Color cells by the number of events
-          title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}` // Tooltip content
-        })
-      ),
-
-      // Text labels for the day of the month
-      Plot.text(
-        completeEventsCount,
-        calendar({
-          date: (d) => new Date(d.date),
-          text: (d) => new Date(d.date).getUTCDate(), // Day of the month
-          frameAnchor: "middle", // Center the text
-          fill: "black", // Text color
-          fontSize: dynamicFontSize,
-          title: (d) => `${d.date}: ${d.count} event${d.count !== 1 ? "s" : ""}`, // Tooltip content
-          ariaLabel: (d) => d.count
-        })
-      ),
-      // Year and month labels (as before)
-      Plot.text(
-        d3.utcYears(d3.utcYear(start), end),
-        calendar({ 
-          text: d3.utcFormat("%Y"), 
-          frameAnchor: "right", x: 0, y: -1, dx: -20,
-          fontSize: dynamicFontSize })
-      ),
-      Plot.text(
-        d3.utcMonths(d3.utcMonth(start), end).map(d3.utcMonday.ceil),
-        calendar({ 
-          text: d3.utcFormat("%b"), 
-          frameAnchor: "left", y: -1,
-          fontSize: dynamicFontSize
-           })
-      )
-    ]
-  });
-})();
-
-setTimeout(() => {
-  const texts = document.querySelectorAll("#plot-container text");
-  console.log(`Found ${texts.length} <text> elements.`);
-  texts.forEach((text) => {
-    const count = parseInt(text.getAttribute("aria-label"), 10);
-    if (!isNaN(count)) {
-      console.log(`Styling element with aria-label: ${count}`);
-      if (count > 0) {
-        text.setAttribute("style", "font-weight: bold;");
-      } else {
-        text.setAttribute("style", "font-weight: normal;");
-      }
-    }
-  });
-}, 500); // Adjust delay based on rendering time
-return {eventsByDate,startDate,endDate,allDates,eventsByDateMap,completeEventsCount,heatmapPlot};
+return {eventsByDate,formattedEvents};
 }});
 
-define({id: "9c62283f", mode: "inline", inputs: ["heatmapPlot","display"], body: async (heatmapPlot,display) => {
-display(await(
-heatmapPlot
-))
+define({id: "8e6e0f4c", inputs: ["CalHeatmap","formattedEvents","d3"], outputs: ["cal"], body: (CalHeatmap,formattedEvents,d3) => {
+const cal = new CalHeatmap();
+cal.paint({
+  itemSelector: '#cal-heatmap',
+  data: {
+    source: formattedEvents,
+    x: 'date', 
+    y: 'value',
+    }, 
+  range: 12, 
+  domain: { 
+    type: 'month', 
+    sort: 'asc', 
+    label: { 
+      position: 'top',
+      textAlign: 'middle'
+     } },
+  subDomain: { 
+    type: 'day',
+    //label: 'D',
+    radius: 2 },
+  scale: {
+    color: {
+      scheme: 'Greens',
+      type: 'linear',
+      domain: [0, d3.max(formattedEvents, d => d.value)],
+    } },
+    date: { 
+      start: new Date(d3.min(formattedEvents, d => new Date(d.date))) 
+      }
+});
+return {cal};
 }});
 
 define({id: "f15ffaed", mode: "inline", inputs: ["timelineContainer","display"], body: async (timelineContainer,display) => {
@@ -375,16 +263,24 @@ timelineContainer
 <script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<div class="observablehq observablehq--block"><!--:ffe673e6:--></div>
+<div class="observablehq observablehq--block"><!--:23c74db4:--></div>
 <div class="observablehq observablehq--block"><!--:32820104:--></div>
 <div class="observablehq observablehq--block"><!--:1326eb29:--></div>
-<div class="observablehq observablehq--block"><!--:3e027651:--></div>
+<div class="observablehq observablehq--block"><!--:9f70f791:--></div>
 <h2 id="calendar" tabindex="-1"><a class="observablehq-header-anchor" href="#calendar">Calendar</a></h2>
-<div id="plot-container" style="width: 100%; height: auto;">
-  <observablehq-loading></observablehq-loading><!--:9c62283f:-->
-</div>
-<h2 id="timeline-data" tabindex="-1"><a class="observablehq-header-anchor" href="#timeline-data">Timeline Data</a></h2>
-<p><observablehq-loading></observablehq-loading><!--:f15ffaed:--></p>
+<p>
+<link rel="stylesheet" href="https://unpkg.com/cal-heatmap@4.2.4/dist/cal-heatmap.css">
+</p><div class="observablehq observablehq--block"><!--:8e6e0f4c:--></div>
+<ul>
+<li>make scroll and have year at the bottom</li>
+<li>add granulatory - but not minute</li>
+<li>add a couple color options</li>
+</ul>
+<div id="cal-heatmap"></div>
+<div id="cal-heatmap-legend" style="{{" float:="" 'right'="" }}=""></div>
+<p>
+</p><h2 id="timeline-data" tabindex="-1"><a class="observablehq-header-anchor" href="#timeline-data">Timeline Data</a></h2>
+<div><observablehq-loading></observablehq-loading><!--:f15ffaed:--></div>
 <style>
 .hero, .grid {
   max-width: none; /* Remove the restriction on these containers */
@@ -402,7 +298,7 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
 </style></main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./forms"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-01-05T22:45:20">Jan 5, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-01-20T21:38:34">Jan 20, 2025</a>.</div>
 </footer>
 </div>
 </body>

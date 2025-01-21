@@ -110,6 +110,8 @@ metadataContainer
 <script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="./_file/style.d25d8d18.css">
 <div class="observablehq observablehq--block"><!--:d099dc38:--></div>
 <div class="observablehq observablehq--block"><!--:41e32c06:--></div>
 <div class="hero">
@@ -117,14 +119,27 @@ metadataContainer
 </div>
 <div class="flex flex-row">
   <div class="card">
-    <b>Project Start Date:</b> <observablehq-loading></observablehq-loading><!--:4f3a5e63:-->
+  <div class="statistics-container">
+  <a href="https://app.staple.science" target="_blank" rel="noopener noreferrer">
+  <picture>
+    <source srcset="./_file/img/logo_white_big.2c934504.png" media="(prefers-color-scheme: dark)" width="200">
+    <img src="./_file/img/logo_black_big.ee6d5ee3.png" alt="STAPLE Logo" width="200">
+  </picture>
+  </a>
+  </div>
+<p>This project summary was created using the STAPLE app. STAPLE empowers researchers to manage their projects with clarity, ensuring open and transparent documentation throughout the project lifecycle. By providing tools for seamless data and metadata tracking, STAPLE supports the principles of open science and fosters collaboration across disciplines. Learn more at <a href="https://staple.science" target="_blank" rel="noopener noreferrer">https://staple.science</a>.</p>
+  </div>
+</div>
+<div class="flex flex-row">
+  <div class="card">
+    <p><b>Project Start Date:</b> <observablehq-loading></observablehq-loading><!--:4f3a5e63:--></p>
     <p><b>Project Metadata and Settings Last Update:</b> <observablehq-loading></observablehq-loading><!--:eebc2f7d:--></p>
     <p><b>Project Description:</b> <observablehq-loading></observablehq-loading><!--:60a3b556:--></p>
     <p><b>Project Metadata:</b></p>
     <observablehq-loading></observablehq-loading><!--:b0f1a4cb:-->
   </div>
 </div>
-<div class="grid grid-cols-4">
+<div class="grid grid-cols-3">
   <div class="card">
     <center><a href="./people_roles">Check out the contributors</a></center>
   </div>
@@ -137,43 +152,14 @@ metadataContainer
   <div class="card">
     <center><a href="./timeline">Check out the timeline</a></center>
   </div>
+    <div class="card">
+    <center><a href="./_file/data/project_summary.json">Download Data</a></center>
+  </div>
 </div>
-<style>
-
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: var(--sans-serif);
-  margin: 2rem 0 2rem;
-  text-wrap: balance;
-  text-align: center;
-}
-
-.hero h1 {
-  font-size: 50px;
-  font-weight: 900;
-  background: linear-gradient(30deg, var(--theme-foreground-focus), currentColor);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero h2 {
-  margin: 0;
-  max-width: 34em;
-  font-size: 20px;
-  font-style: initial;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--theme-foreground-muted);
-}
-
-</style>
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="next" href="./people_roles"><span>Contributors</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-01-05T22:45:20">Jan 5, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-01-20T21:38:34">Jan 20, 2025</a>.</div>
 </footer>
 </div>
 </body>
