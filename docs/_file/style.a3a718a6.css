@@ -177,6 +177,15 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
 
 .card a {
   font-size: 18px;
+  text-decoration: none;
+}
+
+.card-link:hover {
+  filter: brightness(1.2); /* Brighten slightly on hover */
+}
+
+a {
+  text-decoration-line: none !important;
 }
 
 #stat-number-1 {
@@ -191,7 +200,7 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
   font-weight: bold; /* Optional: Make it bold */
 }
 
-#members-section {
+#members-section, #teams-section {
   display: flex;
   flex-wrap: wrap; /* Allow wrapping for small screens */
   gap: 20px; /* Add space between cards */
@@ -228,4 +237,94 @@ p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
   position: relative;
   overflow-y: auto; /* Enable vertical scrolling */
   overflow-x: auto; /* Enable horizontal scrolling */
+}
+
+.custom-collapse {
+  border: solid 1px var(--theme-foreground-faintest);
+  border-radius: 8px;
+  background: var(--theme-background-alt);
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  margin-bottom: 1rem;
+}
+
+/* Collapsible Title Styling */
+.collapse-title {
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--theme-background-alt);
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.collapse-title:hover {
+  background: var(--theme-background-alt);
+}
+
+/* Collapsible Content Hidden by Default */
+.collapse-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+  padding: 0 15px;
+  background: var(--theme-background-alt);
+}
+
+/* Toggle Icon Styling */
+.expand-icon {
+  font-size: 24px;
+  transition: transform 0.3s ease;
+}
+
+/* Checkbox Hidden */
+.toggle-checkbox {
+  display: none;
+}
+
+/* When Checkbox is Checked: Show Content and Rotate Icon */
+.toggle-checkbox:checked ~ .collapse-content {
+  max-height: 500px;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.toggle-checkbox:checked + .collapse-title .expand-icon {
+  transform: rotate(45deg); /* Rotate + to mimic x or expanded state */
+}
+
+.small-card.clickable {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.small-card.clickable:hover {
+  filter: brightness(1.2)
+}
+
+.details-container {
+  margin-top: 20px;
+  padding: 15px;
+  background: var(--theme-background-alt);
+}
+
+.details-container h2 {
+  margin-bottom: 10px;
+}
+
+.progress-container {
+  background-color: var(--secondary-color);
+  border-radius: 10px;
+  overflow: hidden;
+  height: 10px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out;
 }
