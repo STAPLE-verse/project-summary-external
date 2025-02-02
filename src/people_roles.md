@@ -35,15 +35,14 @@ function createHtmlTable(data, containerId, tableId) {
     return;
   }
 
-  // Create the table element
+  // Create the table
   const table = document.createElement("table");
-  table.id = tableId;
+  table.id = tableId; // Assign the provided tableId
   table.className = "custom-table";
 
-  // Create table header with search inputs
+  // Create table header
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
-  const searchRow = document.createElement("tr");
 
   // Use the keys of the first object in the data as headers
   const headers = Object.keys(data[0]);
@@ -51,19 +50,9 @@ function createHtmlTable(data, containerId, tableId) {
     const th = document.createElement("th");
     th.textContent = key.replace(/([A-Z])/g, " $1"); // Add spaces before uppercase letters
     headerRow.appendChild(th);
-
-    // Create search input for each column
-    const searchInput = document.createElement("input");
-    searchInput.type = "text";
-    searchInput.placeholder = `Search ${key}`;
-    searchInput.className = "column_search";
-    const searchTh = document.createElement("th");
-    searchTh.appendChild(searchInput);
-    searchRow.appendChild(searchTh);
   });
 
   thead.appendChild(headerRow);
-  thead.appendChild(searchRow);
   table.appendChild(thead);
 
   // Create table body
@@ -868,7 +857,11 @@ function showDetails(type, id, name, detailsSectionId) {
         className: "btn btn-primary", // Optional: Add a CSS class
         exportOptions: {
           columns: ':visible', // Export visible columns only
-          header: true, // Ensure headers are included
+                    format: {
+            header: function (data, columnIdx) {
+              return $(`#${tableId}`).DataTable().settings().init().columns[columnIdx].title || '';
+            }
+          },
         },
       },
       {
@@ -878,7 +871,11 @@ function showDetails(type, id, name, detailsSectionId) {
         className: "btn btn-success", // Optional: Add a CSS class
         exportOptions: {
           columns: ':visible', // Export visible columns only
-          header: true, // Ensure headers are included
+          format: {
+            header: function (data, columnIdx) {
+              return $(`#${tableId}`).DataTable().settings().init().columns[columnIdx].title || '';
+            }
+          },
         },
       },
     ],
@@ -1081,7 +1078,11 @@ function createCombinedRolesTable() {
         className: "btn btn-primary",
         exportOptions: {
           columns: ':visible', // Export visible columns only
-          header: true, // Ensure headers are included
+          format: {
+            header: function (data, columnIdx) {
+              return $('#combined-roles-table thead th').eq(columnIdx).text().trim();
+            }
+          },
         },
       },
       {
@@ -1091,7 +1092,11 @@ function createCombinedRolesTable() {
         className: "btn btn-success",
         exportOptions: {
           columns: ':visible', // Export visible columns only
-          header: true, // Ensure headers are included
+          format: {
+            header: function (data, columnIdx) {
+              return $('#combined-roles-table thead th').eq(columnIdx).text().trim();
+            }
+          },
         },
       },
     ],
@@ -1201,7 +1206,11 @@ function createCombinedTaskTable() {
         className: "btn btn-primary",
         exportOptions: {
           columns: ':visible', // Export visible columns only
-          header: true, // Ensure headers are included
+          format: {
+            header: function (data, columnIdx) {
+              return $(table).DataTable().settings().init().columns[columnIdx].title || '';
+            }
+          },
         },
       },
       {
@@ -1211,7 +1220,11 @@ function createCombinedTaskTable() {
         className: "btn btn-success",
         exportOptions: {
           columns: ':visible', // Export visible columns only
-          header: true, // Ensure headers are included
+          format: {
+            header: function (data, columnIdx) {
+              return $(table).DataTable().settings().init().columns[columnIdx].title || '';
+            }
+          },
         },
       },
     ],
