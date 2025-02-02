@@ -35,14 +35,15 @@ function createHtmlTable(data, containerId, tableId) {
     return;
   }
 
-  // Create the table
+  // Create the table element
   const table = document.createElement("table");
-  table.id = tableId; // Assign the provided tableId
+  table.id = tableId;
   table.className = "custom-table";
 
-  // Create table header
+  // Create table header with search inputs
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
+  const searchRow = document.createElement("tr");
 
   // Use the keys of the first object in the data as headers
   const headers = Object.keys(data[0]);
@@ -50,9 +51,19 @@ function createHtmlTable(data, containerId, tableId) {
     const th = document.createElement("th");
     th.textContent = key.replace(/([A-Z])/g, " $1"); // Add spaces before uppercase letters
     headerRow.appendChild(th);
+
+    // Create search input for each column
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = `Search ${key}`;
+    searchInput.className = "column_search";
+    const searchTh = document.createElement("th");
+    searchTh.appendChild(searchInput);
+    searchRow.appendChild(searchTh);
   });
 
   thead.appendChild(headerRow);
+  thead.appendChild(searchRow);
   table.appendChild(thead);
 
   // Create table body
@@ -218,7 +229,6 @@ const rolesDataFrame = uniqueRolesDataFrame.map((role) => ({
   description: role.description || "No Description",
   taxonomy: role.taxonomy || "No Taxonomy",
 }));
-
 ```
 
 ```js contributor-task-summaries
@@ -503,57 +513,94 @@ Plotly.newPlot("roles-donut-chart", roleData, roleLayout);
 ```
 
 ```js create-role-table
-createHtmlTable(updatedRolesDataFrame, "role-table-container", "role-table");
+function createRoleTable() {
+  // Create a table container dynamically
+  const container = document.getElementById("role-table-container");
+  if (!container) {
+    console.error("Table container for roles not found!");
+    return;
+  }
 
-$("#role-table").DataTable({
-  paging: true,
-  searching: true,
-  ordering: true,
-  responsive: true,
-  scrollX: true,
-  dom: "frtipB", // Enable Buttons (B) in the DOM
-  buttons: [
-    {
-      extend: "csvHtml5",
-      text: "Download CSV", // Customize button text
-      title: "Roles_Data", // Name of the downloaded file
-      className: "btn btn-primary", // Optional: Add a CSS class
-    },
-    {
-      extend: "excelHtml5",
-      text: "Download Excel",
-      title: "Roles_Data", // Name of the downloaded file
-      className: "btn btn-success", // Optional: Add a CSS class
-    },
-  ],
-  columns: [
-    { data: "name", title: "Role Name", visible: true }, // Renamed column
-    { data: "description", title: "Description", visible: true }, 
-    { data: "taxonomy", title: "Taxonomy", visible: true }, 
-    { data: "countInTasks", title: "Task Count", visible: true }, 
-    { data: "countInMembers", title: "Member Count", visible: true }, 
-    { data: "totalCount", title: "Total Count", visible: false }, 
-  ],
-  language: {
-    search: "Search All: ", // Customize the label for the search box
-  },
-  initComplete: function () {
-    // Optional: Add custom search inputs for each column
-    this.api()
-      .columns()
-      .every(function () {
-        const column = this;
-        const header = $(column.header());
-        const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
-          .appendTo($(header).empty())
-          .on("keyup change clear", function () {
-            if (column.search() !== this.value) {
-              column.search(this.value).draw();
+  // Create the table element
+  const table = document.createElement("table");
+  table.id = "role-table";
+  table.className = "display";
+
+  // Clear the container and append the table
+  container.innerHTML = "";
+  container.appendChild(table);
+
+  // Initialize the DataTable
+  $("#role-table").DataTable({
+    data: updatedRolesDataFrame, 
+    columns: [
+      { data: "name", title: "Role Name", visible: true }, // Renamed column
+      { data: "description", title: "Description", visible: true }, 
+      { data: "taxonomy", title: "Taxonomy", visible: true }, 
+      { data: "countInTasks", title: "Task Count", visible: true }, 
+      { data: "countInMembers", title: "Member Count", visible: true }, 
+      { data: "totalCount", title: "Total Count", visible: false }, 
+    ],
+    paging: true,
+    searching: true,
+    ordering: true,
+    responsive: true,
+    scrollX: true,
+    dom: "frtipB", // Enable Buttons (B) in the DOM
+    buttons: [
+      {
+        extend: "csvHtml5",
+        text: "Download CSV",
+        title: "Role_Data",
+        className: "btn btn-primary",
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          format: {
+            header: function (data, columnIdx) {
+              return $('#role-table thead th').eq(columnIdx).text().trim();
             }
-          });
-      });
-  },
-});
+          },
+        },
+      },
+      {
+        extend: "excelHtml5",
+        text: "Download Excel",
+        title: "Role_Data",
+        className: "btn btn-success",
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          format: {
+            header: function (data, columnIdx) {
+              return $('#role-table thead th').eq(columnIdx).text().trim();
+            }
+          },
+        },
+      },
+    ],
+    language: {
+      search: "Search All: ", // Customize the label for the search box
+    },
+    initComplete: function () {
+      // Optional: Add custom search inputs for each column
+      this.api()
+        .columns()
+        .every(function () {
+          const column = this;
+          const header = $(column.header());
+          const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+            .appendTo($(header).empty())
+            .on("keyup change clear", function () {
+              if (column.search() !== this.value) {
+                column.search(this.value).draw();
+              }
+            });
+        });
+    },
+  });
+}
+
+// Call the function to initialize the table
+createRoleTable();
 ```
 
 ```js get-roles-individuals
@@ -585,6 +632,12 @@ const rolesByIndividual = projectMembersDataFrame.map((individual) => {
       ? `No Name Provided (${individual.username || "No Username"})`
       : `${fullName} (${individual.username || "No Username"})`;
 
+  // Find the corresponding individual task data
+  const individualTaskData = individualsWithTaskData.find(
+    (data) => data.projectMemberId === individual.projectMemberId
+  );
+
+  // Include completion data in the result
   return {
     projectMemberId: individual.projectMemberId,
     name: formattedName,
@@ -592,34 +645,58 @@ const rolesByIndividual = projectMembersDataFrame.map((individual) => {
       name: roleName,
       count,
     })),
+    numberOfTasksCompleted: individualTaskData?.numberOfTasksCompleted || 0,
+    numberOfTasks: individualTaskData?.numberOfTasks || 0,
+    numberOfMetadataForms: individualTaskData?.numberOfMetadataForms || 0,
+    allMetaDataForms: individualTaskData?.allMetaDataForms || 0,
   };
 });
 ```
 
 ```js make-donuts-roles-individuals
 rolesByIndividual.forEach((member) => {
+  // Data for the donut chart
   const data = {
     values: member.roles.map((role) => role.count),
     labels: member.roles.map((role) => role.name),
     colors: d3.schemeCategory10,
   };
 
+  // Calculate completion percentages for tasks and forms
+  const tasksPercentComplete = (
+    (member.numberOfTasksCompleted / member.numberOfTasks) * 100
+  ).toFixed(1);
+  const formsPercentComplete = (
+    (member.numberOfMetadataForms / member.allMetaDataForms) * 100
+  ).toFixed(1);
+
   // Create the card container
   const card = document.createElement("div");
-  card.className = "small-card clickable"; // Make it clickable
+  card.className = "small-card clickable";
 
   // Add the member's name as a title
   const title = document.createElement("h3");
   title.textContent = member.name;
   card.appendChild(title);
 
-  // Create a container for the chart
+  // Create a container for the donut chart
   const containerId = `member-role-chart-${member.projectMemberId}`;
   const chartDiv = document.createElement("div");
   chartDiv.id = containerId;
   card.appendChild(chartDiv);
 
-  // Append the card to the main section
+  // Add progress bars for tasks and forms
+  const progressBars = `
+    <div class="progress-container">
+      <div class="progress-bar" style="width: ${tasksPercentComplete}%; background-color: ${themeColors.primary3};" title="Tasks: ${tasksPercentComplete}% Completed"></div>
+    </div>
+    <div class="progress-container">
+      <div class="progress-bar" style="width: ${formsPercentComplete}%; background-color: ${themeColors.primary4};" title="Forms: ${formsPercentComplete}% Submitted"></div>
+    </div>
+  `;
+  card.innerHTML += progressBars; // Append progress bars to the card
+
+  // Append the card to the members section and render the chart
   const memberRoleChartContainer = document.getElementById("members-section");
   if (memberRoleChartContainer) {
     memberRoleChartContainer.appendChild(card);
@@ -628,7 +705,7 @@ rolesByIndividual.forEach((member) => {
     console.error("Main container for member charts not found!");
   }
 
-  // Add event listener to the card
+  // Event listener for details
   card.addEventListener("click", () => {
     showDetails("member", member.projectMemberId, member.name, "member-details-section");
   });
@@ -649,7 +726,17 @@ const rolesByTeam = teamsDataArray.map((team) => {
     });
   });
 
-  // Return the team data with aggregated role counts
+  // Calculate task and form completion details
+  const numberOfTasksCompleted = teamTaskLogs.filter((log) => log.taskLogStatus === "COMPLETED").length;
+  const totalTasks = teamTaskLogs.length;
+  const numberOfMetadataForms = teamTaskLogs.filter((log) => log.taskLogMetadata !== "No Metadata" && log.taskLogStatus === "COMPLETED").length;
+  const totalForms = teamTaskLogs.filter((log) => log.taskLogMetadata !== "No Metadata").length;
+
+  // Calculate percentages
+  const tasksPercentComplete = ((numberOfTasksCompleted / totalTasks) * 100).toFixed(1);
+  const formsPercentComplete = ((numberOfMetadataForms / totalForms) * 100).toFixed(1);
+
+  // Return the team data with all required columns
   return {
     teamId: team.teamId,
     teamName: team.teamName,
@@ -657,8 +744,16 @@ const rolesByTeam = teamsDataArray.map((team) => {
       name: roleName,
       count,
     })),
+    numberOfTasksCompleted: numberOfTasksCompleted || 0,
+    totalTasks: totalTasks || 0,
+    numberOfMetadataForms: numberOfMetadataForms || 0,
+    totalForms: totalForms || 0,
+    tasksPercentComplete: tasksPercentComplete || 0,
+    formsPercentComplete: formsPercentComplete || 0,
   };
 });
+
+console.log(rolesByTeam)
 ```
 
 ```js make-donuts-teams
@@ -669,18 +764,37 @@ rolesByTeam.forEach((team) => {
     colors: d3.schemeCategory10,
   };
 
+  // Create the card container
   const card = document.createElement("div");
   card.className = "small-card clickable"; // Make it clickable
 
+  // Add the team's name as a title
   const title = document.createElement("h3");
   title.textContent = team.teamName;
   card.appendChild(title);
 
+  // Create a container for the donut chart
   const containerId = `team-role-chart-${team.teamId}`;
   const chartDiv = document.createElement("div");
   chartDiv.id = containerId;
   card.appendChild(chartDiv);
 
+  // Add progress bars for tasks and forms
+  const progressBars = `
+    <div class="progress-container">
+      <div class="progress-bar" 
+           style="width: ${team.tasksPercentComplete}%; background-color: ${themeColors.primary3};" 
+           title="Tasks: ${team.tasksPercentComplete}% Completed"></div>
+    </div>
+    <div class="progress-container">
+      <div class="progress-bar" 
+           style="width: ${team.formsPercentComplete}%; background-color: ${themeColors.primary4};" 
+           title="Forms: ${team.formsPercentComplete}% Submitted"></div>
+    </div>
+  `;
+  card.innerHTML += progressBars; // Append progress bars to the card
+
+  // Append the card to the teams section and render the chart
   const teamRoleChartContainer = document.getElementById("teams-section");
   if (teamRoleChartContainer) {
     teamRoleChartContainer.appendChild(card);
@@ -689,7 +803,7 @@ rolesByTeam.forEach((team) => {
     console.error("Main container for team charts not found!");
   }
 
-  // Add event listener to the card
+  // Event listener for details
   card.addEventListener("click", () => {
     showDetails("team", team.teamId, team.teamName, "team-details-section");
   });
@@ -704,8 +818,6 @@ function showDetails(type, id, name, detailsSectionId) {
     console.error(`Details section with ID "${detailsSectionId}" not found.`);
     return;
   }
-
-  console.log("Inserting details for:", name); // Debugging step
 
   // Clear existing content and add the header first
   detailsSection.innerHTML = `
@@ -754,12 +866,20 @@ function showDetails(type, id, name, detailsSectionId) {
         text: "Download CSV", // Customize button text
         title: "Roles_Data", // Name of the downloaded file
         className: "btn btn-primary", // Optional: Add a CSS class
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          header: true, // Ensure headers are included
+        },
       },
       {
         extend: "excelHtml5",
         text: "Download Excel",
         title: "Roles_Data", // Name of the downloaded file
         className: "btn btn-success", // Optional: Add a CSS class
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          header: true, // Ensure headers are included
+        },
       },
     ],
       columns: [
@@ -893,6 +1013,234 @@ const tasksWithNames = tasksDataFrame.map((task) => {
 });
 ```
 
+```js combined-roles
+// Combine roles by individual and team
+const combinedRolesData = [
+  ...rolesByIndividual.map((individual) => ({
+    name: individual.name,
+    type: "Individual",
+    roles: individual.roles.map((role) => `${role.name} (${role.count})`).join(", "),
+    tasksCompleted: individual.numberOfTasksCompleted || 0,
+    totalTasks: individual.numberOfTasks || 0,
+    formsSubmitted: individual.numberOfMetadataForms || 0,
+    totalForms: individual.allMetaDataForms || 0,
+  })),
+  ...rolesByTeam.map((team) => ({
+    name: team.teamName,
+    type: "Team",
+    roles: team.roles.map((role) => `${role.name} (${role.count})`).join(", "),
+    tasksCompleted: team.numberOfTasksCompleted || 0,
+    totalTasks: team.totalTasks || 0, // Default to 0 if missing
+    formsSubmitted: team.numberOfMetadataForms || 0,
+    totalForms: team.totalForms || 0, // Default to 0 if missing
+  })),
+];
+```
+
+```js download-datatable-roles
+function createCombinedRolesTable() {
+  // Create a table container dynamically
+  const container = document.getElementById("roles-table-container");
+  if (!container) {
+    console.error("Table container for roles not found!");
+    return;
+  }
+
+  // Create the table element
+  const table = document.createElement("table");
+  table.id = "combined-roles-table";
+  table.className = "display";
+
+  // Clear the container and append the table
+  container.innerHTML = "";
+  container.appendChild(table);
+
+  // Initialize the DataTable
+  $(table).DataTable({
+    data: combinedRolesData,
+    columns: [
+      { data: "name", title: "Name" },
+      { data: "type", title: "Type" },
+      { data: "roles", title: "Roles" },
+      { data: "tasksCompleted", title: "Tasks Completed" },
+      { data: "totalTasks", title: "Total Tasks" },
+      { data: "formsSubmitted", title: "Forms Submitted" },
+      { data: "totalForms", title: "Total Forms" },
+    ],
+    paging: true,
+    searching: true,
+    ordering: true,
+    responsive: true,
+    scrollX: true,
+    dom: "frtipB", // Enable Buttons
+    buttons: [
+      {
+        extend: "csvHtml5",
+        text: "Download CSV",
+        title: "Combined_Roles_Data",
+        className: "btn btn-primary",
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          header: true, // Ensure headers are included
+        },
+      },
+      {
+        extend: "excelHtml5",
+        text: "Download Excel",
+        title: "Combined_Roles_Data",
+        className: "btn btn-success",
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          header: true, // Ensure headers are included
+        },
+      },
+    ],
+    language: {
+    search: "Search All: ", // Customize the label for the search box
+  },
+  initComplete: function () {
+    // Optional: Add custom search inputs for each column
+    this.api()
+      .columns()
+      .every(function () {
+        const column = this;
+        const header = $(column.header());
+        const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+          .appendTo($(header).empty())
+          .on("keyup change clear", function () {
+            if (column.search() !== this.value) {
+              column.search(this.value).draw();
+            }
+          });
+      });
+  },
+});
+}
+
+// Call this function to initialize the table
+createCombinedRolesTable();
+```
+
+```js combined-task-data
+// Combine task data for both members and teams
+const combinedTaskData = tasksWithNames.map((task) => ({
+  taskId: task.taskId,
+  createdAt: task.createdAt || "N/A",
+  updatedAt: task.updatedAt || "N/A",
+  createdById: task.createdById || "N/A",
+  formVersionId: task.formVersionId || "N/A",
+  deadline: task.deadline || "No Deadline",
+  name: task.name || "Unnamed Task",
+  description: task.description || "No Description",
+  status: task.status || "Unknown Status",
+  elementName: task.elementName || "No Element Name",
+  elementDescription: task.elementDescription || "No Element Description",
+  taskLogCreatedAt: task.taskLogCreatedAt || "N/A",
+  taskLogStatus: task.taskLogStatus || "Not Completed",
+  taskLogMetadata: task.taskLogMetadata || "No Metadata",
+  completedById: task.completedById || "N/A",
+  assignedToId: task.assignedToId || "N/A",
+  roles: task.roles || "No Roles",
+  assignedTo: task.assignedTo || "Unassigned",
+  completedBy: task.completedBy || "Unknown",
+}));
+```
+
+```js combined-data-download
+function createCombinedTaskTable() {
+  const container = document.getElementById("combined-task-table-container");
+  if (!container) {
+    console.error("Table container for tasks not found!");
+    return;
+  }
+
+  // Create the table element
+  const table = document.createElement("table");
+  table.id = "combined-task-table";
+  table.className = "display";
+
+  // Clear the container and append the table
+  container.innerHTML = "";
+  container.appendChild(table);
+
+  // Initialize the DataTable
+  $(table).DataTable({
+    data: combinedTaskData,
+    columns: [
+      { data: "taskId", title: "Task Id", visible: false },
+      { data: "createdAt", title: "Created Date", visible: true },
+      { data: "updatedAt", title: "Updated Date", visible: true },
+      { data: "createdById", title: "Created By Id", visible: false },
+      { data: "formVersionId", title: "Form Version Id", visible: false },
+      { data: "deadline", title: "Deadline", visible: true },
+      { data: "name", title: "Task Name", visible: true },
+      { data: "description", title: "Task Description", visible: true },
+      { data: "status", title: "Task Completed", visible: true },
+      { data: "elementName", title: "Element Name", visible: true },
+      { data: "elementDescription", title: "Element Description", visible: true },
+      { data: "taskLogCreatedAt", title: "Task Log Date", visible: true },
+      { data: "taskLogStatus", title: "Task Log Completed", visible: true },
+      { data: "taskLogMetadata", title: "Form Data", visible: true },
+      { data: "completedById", title: "Completed By Id", visible: false },
+      { data: "assignedToId", title: "Assigned To Id", visible: false },
+      { data: "roles", title: "Roles", visible: true },
+      { data: "assignedTo", title: "Assigned To", visible: true },
+      { data: "completedBy", title: "Completed By", visible: true },
+    ],
+    paging: true,
+    searching: true,
+    ordering: true,
+    responsive: true,
+    scrollX: true,
+    dom: "frtipB",
+    buttons: [
+      {
+        extend: "csvHtml5",
+        text: "Download CSV",
+        title: "Combined_Tasks_Data",
+        className: "btn btn-primary",
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          header: true, // Ensure headers are included
+        },
+      },
+      {
+        extend: "excelHtml5",
+        text: "Download Excel",
+        title: "Combined_Tasks_Data",
+        className: "btn btn-success",
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          header: true, // Ensure headers are included
+        },
+      },
+    ],
+    language: {
+      search: "Search All: ", // Customize the search label
+    },
+    initComplete: function () {
+      // Optional: Add custom search inputs for each column
+      this.api()
+        .columns()
+        .every(function () {
+          const column = this;
+          const header = $(column.header());
+          const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+            .appendTo($(header).empty())
+            .on("keyup change clear", function () {
+              if (column.search() !== this.value) {
+                column.search(this.value).draw();
+              }
+            });
+        });
+    },
+  });
+}
+
+// Call the function to initialize the table
+createCombinedTaskTable();
+```
+
 <div class ="card">
 
   <div class="card-title">
@@ -981,9 +1329,18 @@ const tasksWithNames = tasksDataFrame.map((task) => {
   </div>
 </div>
 
-<div class ="card">
-  <div class="card-title" id="roles">
-    <h1>All Member and Team Data</h1>
-    <p>You can download summarized statistics and all logs using these two tables.</p>
+<div class="card">
+  <div class="card-title">
+    <h1>Combined Roles Data</h1>
+    <p>This table includes combined roles data for both individuals and teams, along with task and form completion statistics. You can download it using the buttons below.</p>
   </div>
+  <div id="roles-table-container"></div> <!-- Placeholder for the table -->
+</div>
+
+<div class="card">
+  <div class="card-title">
+    <h1>Combined Task Data</h1>
+    <p>This table includes task data for both individuals and teams, along with their assigned roles, statuses, and form data. You can download the information using the buttons below.</p>
+  </div>
+  <div id="combined-task-table-container"></div> <!-- Placeholder for the table -->
 </div>
