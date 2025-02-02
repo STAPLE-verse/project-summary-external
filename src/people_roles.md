@@ -630,7 +630,7 @@ rolesByIndividual.forEach((member) => {
 
   // Add event listener to the card
   card.addEventListener("click", () => {
-    showDetails("member", member.projectMemberId, member.name);
+    showDetails("member", member.projectMemberId, member.name, "member-details-section");
   });
 });
 ```
@@ -691,39 +691,206 @@ rolesByTeam.forEach((team) => {
 
   // Add event listener to the card
   card.addEventListener("click", () => {
-    showDetails("team", team.teamId, team.teamName);
+    showDetails("team", team.teamId, team.teamName, "team-details-section");
   });
 });
 ```
 
 ```js show-details-clicked-card
-function showDetails(type, id, name) {
-  // Clear existing content in the details section
-  const detailsSection = document.getElementById("details-section");
-  detailsSection.innerHTML = `<h2>${name} Details</h2>`;
+function showDetails(type, id, name, detailsSectionId) {
+  const detailsSection = document.getElementById(detailsSectionId);
 
-  // Fetch the relevant data based on type and id
+  if (!detailsSection) {
+    console.error(`Details section with ID "${detailsSectionId}" not found.`);
+    return;
+  }
+
+  console.log("Inserting details for:", name); // Debugging step
+
+  // Clear existing content and add the header first
+  detailsSection.innerHTML = `
+    <h2>${name} Details</h2>
+    <p>Here’s a summary of tasks and contributions for ${name}. The table contains the 
+    entire set of task logs for each person with the roles assigned to those task. You 
+    can download the table information by using the buttons at the bottom.</p>
+  `;
+
+  // Filter relevant data
   const relevantData =
     type === "member"
-      ? tasksWithNames.filter((task) => task.assignedTo === name)
+      ? tasksWithNames.filter((task) => task.assignedTo.includes(name))
       : tasksWithNames.filter((task) => {
           const team = groupMembersDataFrame.find((team) => team.projectMemberId === id);
-          return team && task.assignedTo === team.groupName;
+          return team && task.assignedTo.includes(team.groupName);
         });
 
-  // Create a table to display the tasks
-  const tableId = `details-table-${id}`;
-  createHtmlTable(relevantData, "details-section", tableId);
+  if (relevantData.length === 0) {
+    detailsSection.innerHTML += "<p>No tasks found for this selection.</p>";
+    return;
+  }
 
-  // Style and enable DataTable functionality
+  // Create a container for the table (after the header)
+  const tableContainer = document.createElement("div");
+  tableContainer.id = `details-table-container-${id}`;
+
+  // Append the container to the section
+  detailsSection.appendChild(tableContainer);
+
+  // Create and render the table within the container
+  const tableId = `details-table-${id}`;
+  createHtmlTable(relevantData, tableContainer.id, tableId);
+
+  // Apply DataTables functionality
   $(`#${tableId}`).DataTable({
     paging: true,
     searching: true,
     ordering: true,
     responsive: true,
     scrollX: true,
+    dom: "frtipB", // Enable Buttons (B) in the DOM
+    buttons: [
+      {
+        extend: "csvHtml5",
+        text: "Download CSV", // Customize button text
+        title: "Roles_Data", // Name of the downloaded file
+        className: "btn btn-primary", // Optional: Add a CSS class
+      },
+      {
+        extend: "excelHtml5",
+        text: "Download Excel",
+        title: "Roles_Data", // Name of the downloaded file
+        className: "btn btn-success", // Optional: Add a CSS class
+      },
+    ],
+      columns: [
+    { data: "taskId", title: "Task Id", visible: false }, 
+    { data: "createdAt", title: "Created Date", visible: true }, 
+    { data: "updatedAt", title: "Updated Date", visible: true }, 
+    { data: "createdById", title: "Created By Id", visible: false }, 
+    { data: "formVersionId", title: "Form Version Id", visible: false }, 
+    { data: "deadline", title: "Deadline", visible: true }, 
+    { data: "name", title: "Task Name", visible: true }, 
+    { data: "description", title: "Task Description", visible: true }, 
+    { data: "status", title: "Task Completed", visible: true }, 
+    { data: "elementName", title: "Element Name", visible: true }, 
+    { data: "elementDescription", title: "Element Description", visible: true }, 
+    { data: "taskLogCreatedAt", title: "Task Log Date", visible: true }, 
+    { data: "taskLogStatus", title: "Task Log Completed", visible: true }, 
+    { data: "taskLogMetadata", title: "Form Data", visible: true }, 
+    { data: "completedById", title: "Completed By Id", visible: false }, 
+    { data: "assignedToId", title: "Assigned To Id", visible: false }, 
+    { data: "roles", title: "Roles", visible: true }, 
+    { data: "assignedTo", title: "Assigned To", visible: true }, 
+    { data: "completedBy", title: "Completed By", visible: true }, 
+  ],
+    language: {
+      search: "Search All: ", // Customize the label for the search box
+    },
+    initComplete: function () {
+      // Optional: Add custom search inputs for each column
+      this.api()
+        .columns()
+        .every(function () {
+          const column = this;
+          const header = $(column.header());
+          const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+            .appendTo($(header).empty())
+            .on("keyup change clear", function () {
+              if (column.search() !== this.value) {
+                column.search(this.value).draw();
+              }
+            });
+        });
+    },
   });
-}
+};
+```
+
+```js tasks-with-names-formatted
+const tasksWithNames = tasksDataFrame.map((task) => {
+  // Find the assigned team or individual name
+  const assignedName = (() => {
+    const assignedTeam = groupMembersDataFrame.find(
+      (team) => team.projectMemberId === task.assignedToId
+    );
+
+    if (assignedTeam) {
+      return assignedTeam.groupName || "Unnamed Team";
+    }
+
+    const assignedMember = projectMembersDataFrame.find(
+      (member) => member.projectMemberId === task.assignedToId
+    );
+
+    if (assignedMember) {
+      const fullName =
+        `${assignedMember.firstName?.trim() || "Not Provided"} ${
+          assignedMember.lastName?.trim() || "Not Provided"
+        }`.trim();
+      return fullName === "Not Provided Not Provided"
+        ? `No Name Provided (${assignedMember.username || "No Username"})`
+        : `${fullName} (${assignedMember.username || "No Username"})`;
+    }
+    return "Unassigned"; // Fallback if no match is found
+  })();
+
+  // Find the completed by team or individual name
+  const completedByName = (() => {
+    if (task.completedById === "Task Created") {
+      return "Task Created"; // Special case handling
+    }
+
+    const completedByTeam = groupMembersDataFrame.find(
+      (team) => team.projectMemberId === task.completedById
+    );
+
+    if (completedByTeam) {
+      return completedByTeam.groupName || "Unnamed Team";
+    }
+
+    const completedByMember = projectMembersDataFrame.find(
+      (member) => member.projectMemberId === task.completedById
+    );
+
+    if (completedByMember) {
+      const fullName =
+        `${completedByMember.firstName?.trim() || "Not Provided"} ${
+          completedByMember.lastName?.trim() || "Not Provided"
+        }`.trim();
+      return fullName === "Not Provided Not Provided"
+        ? `No Name Provided (${completedByMember.username || "No Username"})`
+        : `${fullName} (${completedByMember.username || "No Username"})`;
+    }
+    return "Unknown"; // Fallback if no match is found
+  })();
+
+  // Combine role names into a single string
+  const combinedRoles = task.roles.map((role) => role.name).join(", ");
+
+  // Format taskLogMetadata as a JSON string if it contains data
+  const formattedMetadata =
+    task.taskLogMetadata && typeof task.taskLogMetadata === "object"
+      ? JSON.stringify(task.taskLogMetadata, null, 2) // Pretty-printed JSON
+      : task.taskLogMetadata;
+
+  // Convert taskLogStatus to a user-friendly format
+  const formattedStatus =
+    task.taskLogStatus === "COMPLETED" ? "Completed" : "Not Completed";
+
+  const formattedTaskStatus =
+    task.taskStatus === "COMPLETED" ? "Completed" : "Not Completed";
+
+  // Return a new object with updated values
+  return {
+    ...task, // Spread the existing task data
+    assignedTo: assignedName, // Replace assignedToId with the formatted name
+    completedBy: completedByName, // Handle "Task Created" case and unknowns
+    roles: combinedRoles, // Combine roles into a single string
+    taskLogMetadata: formattedMetadata, // Pretty-print JSON if applicable
+    taskLogStatus: formattedStatus, // User-friendly status
+    status: formattedTaskStatus,
+  };
+});
 ```
 
 <div class ="card">
@@ -784,7 +951,7 @@ function showDetails(type, id, name) {
   <div class="collapse-content">
   <p>This section contains the role information for each member. Click on an individual card to learn more about their contribution to the project.</p>
     <div id="members-section"></div> <!-- Placeholder for dynamic content -->
-    <div id="details-section" class="details-container">
+    <div id="member-details-section" class="details-container">
       <p>Select a card to view details about the contributor or team.</p>
     </div>
   </div>
@@ -799,7 +966,7 @@ function showDetails(type, id, name) {
   <div class="collapse-content">
     <p>This section contains the role information for each team. Click on an individual card to learn more about their contribution to the project.</p>
     <div id="teams-section"></div> <!-- Placeholder for dynamic content -->
-    <div id="details-section" class="details-container">
+    <div id="team-details-section" class="details-container">
       <p>Select a card to view details about the contributor or team.</p>
     </div>
   </div>
@@ -814,146 +981,9 @@ function showDetails(type, id, name) {
   </div>
 </div>
 
-
-## Role Information
-
-
-## Individual Members
-<p>
-
-drop down of the member selection
-
-render card of information for each person 
-
-table of everything they did with download 
-
-## Teams
-<p>
-
-drop down to select a team 
-
-render cards of information for each person 
-
-table of everything they did with download 
-
-## View Data by Member or Team
-<p>
-
-```js
-const tasksWithNames = tasksDataFrame.map((task) => {
-  // Find the assigned team or individual name
-  const assignedName = (() => {
-    const assignedTeam = groupMembersDataFrame.find(
-      (team) => team.projectMemberId === task.assignedToId
-    );
-
-    if (assignedTeam) {
-      return assignedTeam.groupName || "Unnamed Team";
-    }
-
-    const assignedMember = projectMembersDataFrame.find(
-      (member) => member.projectMemberId === task.assignedToId
-    );
-
-    if (assignedMember) {
-      const fullName =
-        `${assignedMember.firstName?.trim() || "Not Provided"} ${
-          assignedMember.lastName?.trim() || "Not Provided"
-        }`.trim();
-      return fullName === "Not Provided Not Provided"
-        ? `No Name Provided (${assignedMember.username || "No Username"})`
-        : `${fullName} (${assignedMember.username || "No Username"})`;
-    }
-    return "Unassigned"; // Fallback if no match is found
-  })();
-
-  // Find the completed by team or individual name
-  const completedByName = (() => {
-    const completedByTeam = groupMembersDataFrame.find(
-      (team) => team.projectMemberId === task.completedById
-    );
-
-    if (completedByTeam) {
-      return completedByTeam.groupName || "Unnamed Team";
-    }
-
-    const completedByMember = projectMembersDataFrame.find(
-      (member) => member.projectMemberId === task.completedById
-    );
-
-    if (completedByMember) {
-      const fullName =
-        `${completedByMember.firstName?.trim() || "Not Provided"} ${
-          completedByMember.lastName?.trim() || "Not Provided"
-        }`.trim();
-      return fullName === "Not Provided Not Provided"
-        ? `No Name Provided (${completedByMember.username || "No Username"})`
-        : `${fullName} (${completedByMember.username || "No Username"})`;
-    }
-    return "Unknown"; // Fallback if no match is found
-  })();
-
-  // Return a new object with updated assignedTo and completedBy fields
-  return {
-    ...task, // Spread the existing task data
-    assignedTo: assignedName, // Replace assignedToId with the formatted name
-    completedBy: completedByName, // Replace completedById with the formatted name
-  };
-});
-
-const selectDropDown = view(
-  Inputs.select(
-Array.from(
-      new Set(tasksWithNames.map((task) => task.assignedTo)) 
-    ),
-  {     
-    sort: true,
-    unique: true,
-    value: "Select a Member or Team", // Default selection (empty)
-  }
-))
-```
-
-```js
-// Call the function to create the table
-const filteredData = tasksWithNames.filter(
-  (task) => task.assignedTo === selectDropDown
-);
-
-createHtmlTable(filteredData, "table-container", "tasks-table");
-
-$("#tasks-table").DataTable({
-  paging: true,
-  searching: true,
-  ordering: true,
-  responsive: true,
-  scrollX: true,
-  initComplete: function () {
-    // Add a text input for each column
-    this.api()
-      .columns()
-      .every(function () {
-        const column = this;
-        const header = $(column.header());
-        const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
-          .appendTo($(header).empty())
-          .on("keyup change clear", function () {
-            if (column.search() !== this.value) {
-              column.search(this.value).draw();
-            }
-          });
-      });
-  },
-});
-```
-
-<p>
-
-## Data Table Version
-
-<div id="table-container"></div>
-
-## Data Downloads
-
-formatted data of individual and team completed statistics
-formatted data of every task log 
+<div class ="card">
+  <div class="card-title" id="roles">
+    <h1>All Member and Team Data</h1>
+    <p>You can download summarized statistics and all logs using these two tables.</p>
+  </div>
+</div>
