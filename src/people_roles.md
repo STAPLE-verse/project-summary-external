@@ -594,22 +594,19 @@ const rolesByIndividual = projectMembersDataFrame.map((individual) => {
     })),
   };
 });
-
-console.log(rolesByIndividual)
 ```
 
 ```js make-donuts-roles-individuals
 rolesByIndividual.forEach((member) => {
-  // Prepare data for the chart
   const data = {
-    values: member.roles.map((role) => role.count), // Role counts
-    labels: member.roles.map((role) => role.name), // Role names
-    colors: d3.schemeCategory10, // Color palette
+    values: member.roles.map((role) => role.count),
+    labels: member.roles.map((role) => role.name),
+    colors: d3.schemeCategory10,
   };
 
   // Create the card container
   const card = document.createElement("div");
-  card.className = "small-card"; // Apply a predefined card style
+  card.className = "small-card clickable"; // Make it clickable
 
   // Add the member's name as a title
   const title = document.createElement("h3");
@@ -619,22 +616,115 @@ rolesByIndividual.forEach((member) => {
   // Create a container for the chart
   const containerId = `member-role-chart-${member.projectMemberId}`;
   const chartDiv = document.createElement("div");
-  chartDiv.id = containerId; // Assign a unique ID for the chart container
+  chartDiv.id = containerId;
   card.appendChild(chartDiv);
 
   // Append the card to the main section
   const memberRoleChartContainer = document.getElementById("members-section");
   if (memberRoleChartContainer) {
     memberRoleChartContainer.appendChild(card);
-
-    // Now render the chart into the container
     createDonutChart(data, containerId, `${member.name}`);
   } else {
     console.error("Main container for member charts not found!");
   }
+
+  // Add event listener to the card
+  card.addEventListener("click", () => {
+    showDetails("member", member.projectMemberId, member.name);
+  });
 });
 ```
-  
+
+```js get-roles-teams
+const rolesByTeam = teamsDataArray.map((team) => {
+  const roleCounts = {};
+
+  // Filter task logs where the task is assigned to this team
+  const teamTaskLogs = latestTaskLogs.filter((log) => log.assignedToId === team.teamId);
+
+  // Count roles across all tasks assigned to this team
+  teamTaskLogs.forEach((log) => {
+    log.roles.forEach((role) => {
+      roleCounts[role.name] = (roleCounts[role.name] || 0) + 1;
+    });
+  });
+
+  // Return the team data with aggregated role counts
+  return {
+    teamId: team.teamId,
+    teamName: team.teamName,
+    roles: Object.entries(roleCounts).map(([roleName, count]) => ({
+      name: roleName,
+      count,
+    })),
+  };
+});
+```
+
+```js make-donuts-teams
+rolesByTeam.forEach((team) => {
+  const data = {
+    values: team.roles.map((role) => role.count),
+    labels: team.roles.map((role) => role.name),
+    colors: d3.schemeCategory10,
+  };
+
+  const card = document.createElement("div");
+  card.className = "small-card clickable"; // Make it clickable
+
+  const title = document.createElement("h3");
+  title.textContent = team.teamName;
+  card.appendChild(title);
+
+  const containerId = `team-role-chart-${team.teamId}`;
+  const chartDiv = document.createElement("div");
+  chartDiv.id = containerId;
+  card.appendChild(chartDiv);
+
+  const teamRoleChartContainer = document.getElementById("teams-section");
+  if (teamRoleChartContainer) {
+    teamRoleChartContainer.appendChild(card);
+    createDonutChart(data, containerId, `${team.teamName}`);
+  } else {
+    console.error("Main container for team charts not found!");
+  }
+
+  // Add event listener to the card
+  card.addEventListener("click", () => {
+    showDetails("team", team.teamId, team.teamName);
+  });
+});
+```
+
+```js show-details-clicked-card
+function showDetails(type, id, name) {
+  // Clear existing content in the details section
+  const detailsSection = document.getElementById("details-section");
+  detailsSection.innerHTML = `<h2>${name} Details</h2>`;
+
+  // Fetch the relevant data based on type and id
+  const relevantData =
+    type === "member"
+      ? tasksWithNames.filter((task) => task.assignedTo === name)
+      : tasksWithNames.filter((task) => {
+          const team = groupMembersDataFrame.find((team) => team.projectMemberId === id);
+          return team && task.assignedTo === team.groupName;
+        });
+
+  // Create a table to display the tasks
+  const tableId = `details-table-${id}`;
+  createHtmlTable(relevantData, "details-section", tableId);
+
+  // Style and enable DataTable functionality
+  $(`#${tableId}`).DataTable({
+    paging: true,
+    searching: true,
+    ordering: true,
+    responsive: true,
+    scrollX: true,
+  });
+}
+```
 
 <div class ="card">
 
@@ -685,33 +775,43 @@ rolesByIndividual.forEach((member) => {
   </div>
 </div>
 
-<div class="card">
-  <div class="card-title" id="members">
-    <h1>Members</h1>
-    - scroll the box or collapse the box? 
-    - make each of these clickable to show information for each member's information
+<div class="custom-collapse">
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-members"> 
+  <label for="collapse-toggle-members" class="collapse-title">
+    <div class="card-title" id="members"><h1>Members</h1></div>
+    <i class="expand-icon">+</i>
+  </label>
+  <div class="collapse-content">
+  <p>This section contains the role information for each member. Click on an individual card to learn more about their contribution to the project.</p>
     <div id="members-section"></div> <!-- Placeholder for dynamic content -->
+    <div id="details-section" class="details-container">
+      <p>Select a card to view details about the contributor or team.</p>
+    </div>
+  </div>
+</div>
+
+<div class="custom-collapse">
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-teams"> 
+  <label for="collapse-toggle-teams" class="collapse-title">
+    <div class="card-title" id="teams"><h1>Teams</h1></div>
+    <i class="expand-icon">+</i>
+  </label>
+  <div class="collapse-content">
+    <p>This section contains the role information for each team. Click on an individual card to learn more about their contribution to the project.</p>
+    <div id="teams-section"></div> <!-- Placeholder for dynamic content -->
+    <div id="details-section" class="details-container">
+      <p>Select a card to view details about the contributor or team.</p>
+    </div>
   </div>
 </div>
 
 <div class ="card">
-
-  <div class="card-title" id="teams">
-    <h1>Teams</h1>
-  </div>
-
-</div>
-
-<div class ="card">
-
   <div class="card-title" id="roles">
     <h1>Roles</h1>
-    <p>This section contains the summary information of all roles summarized across tasks and members.</p>
+    <p>This section contains the descriptive information of all roles, and the overall roles summarized across tasks and members.</p>
 
   <div id="role-table-container"></div>
-
   </div>
-
 </div>
 
 
