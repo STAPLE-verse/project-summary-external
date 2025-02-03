@@ -7,10 +7,10 @@
 <title>Event Timeline | Project Summary</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
-<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight,alt,wide.db1cdf55.css">
+<link rel="preload" as="style" href="./_observablehq/theme-air,deep-space.9d6d3ba1.css">
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
-<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight,alt,wide.db1cdf55.css">
-<link rel="modulepreload" href="./_observablehq/client.1d1e0783.js">
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,deep-space.9d6d3ba1.css">
+<link rel="modulepreload" href="./_observablehq/client.65fe86b7.js">
 <link rel="modulepreload" href="./_observablehq/runtime.9393ab6d.js">
 <link rel="modulepreload" href="./_observablehq/stdlib.95bfbf7e.js">
 <link rel="modulepreload" href="./_npm/@observablehq/plot@0.6.16/e828d8c8.js">
@@ -55,7 +55,7 @@
 <link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
 <script type="module">
 
-import {define} from "./_observablehq/client.1d1e0783.js";
+import {define} from "./_observablehq/client.65fe86b7.js";
 import {registerFile} from "./_observablehq/stdlib.95bfbf7e.js";
 
 registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.8b37e4a5.json","lastModified":1736116661396,"size":16035});
@@ -73,7 +73,7 @@ const jsonData = FileAttachment("./data/project_summary.json").json();
 return {jsonData};
 }});
 
-define({id: "1326eb29", inputs: ["jsonData"], outputs: ["tasks","projectMembers","projectName","projectCreatedAt","projectMembersById","timelineEvents","timelineContainer","list"], body: (jsonData) => {
+define({id: "accb527d", inputs: ["jsonData"], outputs: ["tasks","projectMembers","projectName","projectCreatedAt","projectMembersById","timelineEvents"], body: (jsonData) => {
 // Extract tasks and create timeline events
 const tasks = jsonData.tasks ?? [];
 const projectMembers = jsonData.projectMembers ?? [];
@@ -171,21 +171,7 @@ timelineEvents = timelineEvents.map(event => ({
   ...event,
   dateFormat: new Date(event.date).toISOString().split("T")[0]
 }));
-
-// Create a container element for the timeline
-const timelineContainer = document.createElement("div");
-const list = document.createElement("ol");
-
-// Loop through events and append them as list items
-timelineEvents.forEach(event => {
-  const listItem = document.createElement("li");
-  listItem.innerHTML = `<strong>${event.type}:</strong> ${event.name} - ${new Date(event.date).toLocaleString()}`;
-  list.appendChild(listItem);
-});
-
-// Append the list to the container
-timelineContainer.appendChild(list);
-return {tasks,projectMembers,projectName,projectCreatedAt,projectMembersById,timelineEvents,timelineContainer,list};
+return {tasks,projectMembers,projectName,projectCreatedAt,projectMembersById,timelineEvents};
 }});
 
 define({id: "9f70f791", inputs: ["d3","timelineEvents"], outputs: ["eventsByDate","formattedEvents"], body: (d3,timelineEvents) => {
@@ -237,10 +223,96 @@ cal.paint({
 return {cal};
 }});
 
-define({id: "f15ffaed", mode: "inline", inputs: ["timelineContainer","display"], body: async (timelineContainer,display) => {
-display(await(
-timelineContainer
-))
+define({id: "60f6e6f3", inputs: ["$","timelineEvents"], outputs: ["createTimelineEventsTable"], body: ($,timelineEvents) => {
+function createTimelineEventsTable() {
+  // Create a table container dynamically
+  const container = document.getElementById("timeline-events-container");
+  if (!container) {
+    console.error("Table container for timeline not found!");
+    return;
+  }
+
+  // Create the table element
+  const table = document.createElement("table");
+  table.id = "timeline-events-table";
+  table.className = "display";
+
+  // Clear the container and append the table
+  container.innerHTML = "";
+  container.appendChild(table);
+  // Initialize DataTable directly with timelineEvents as the data source
+  $("#timeline-events-table").DataTable({
+    data: timelineEvents, // Directly use timelineEvents as the data source
+    destroy: true, // Recreate the table each time
+    columns: [
+      { data: "name", title: "Event Name" },
+      { 
+        data: "date", 
+        title: "Event Date",
+      },
+      { data: "type", title: "Event Type" }
+    ],
+    paging: true,
+    searching: true,
+    ordering: true,
+    responsive: true,
+    dom: "frtipB",
+    buttons: [
+      {
+        extend: "csvHtml5",
+        text: "Download CSV",
+        title: "Timeline_Events",
+        className: "btn btn-primary",
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          format: {
+            header: function (data, columnIdx) {
+              return $('#timeline-events-table thead th').eq(columnIdx).text().trim();
+            }
+          },
+        },
+      },
+      {
+        extend: "excelHtml5",
+        text: "Download Excel",
+        title: "Timeline_Events",
+        className: "btn btn-success",
+        exportOptions: {
+          columns: ':visible', // Export visible columns only
+          format: {
+            header: function (data, columnIdx) {
+              return $('#timeline-events-table thead th').eq(columnIdx).text().trim();
+            }
+          },
+        },
+      },
+    ],
+    order: [[1, "asc"]], 
+    language: {
+      search: "Search All: ", // Customize the label for the search box
+    },
+    initComplete: function () {
+      // Optional: Add custom search inputs for each column
+      this.api()
+        .columns()
+        .every(function () {
+          const column = this;
+          const header = $(column.header());
+          const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+            .appendTo($(header).empty())
+            .on("keyup change clear", function () {
+              if (column.search() !== this.value) {
+                column.search(this.value).draw();
+              }
+            });
+        });
+    },
+  });
+}
+
+// Call the function to initialize the DataTable
+createTimelineEventsTable();
+return {createTimelineEventsTable};
 }});
 
 </script>
@@ -263,42 +335,54 @@ timelineContainer
 <script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
+<link rel="stylesheet" href="https://unpkg.com/cal-heatmap@4.2.4/dist/cal-heatmap.css">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://unpkg.com/cal-heatmap@4.2.4/dist/cal-heatmap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<link rel="stylesheet" href="./_file/style.f552580f.css">
 <div class="observablehq observablehq--block"><!--:23c74db4:--></div>
 <div class="observablehq observablehq--block"><!--:32820104:--></div>
-<div class="observablehq observablehq--block"><!--:1326eb29:--></div>
+<div class="observablehq observablehq--block"><!--:accb527d:--></div>
 <div class="observablehq observablehq--block"><!--:9f70f791:--></div>
-<h2 id="calendar" tabindex="-1"><a class="observablehq-header-anchor" href="#calendar">Calendar</a></h2>
-<p>
-<link rel="stylesheet" href="https://unpkg.com/cal-heatmap@4.2.4/dist/cal-heatmap.css">
-</p><div class="observablehq observablehq--block"><!--:8e6e0f4c:--></div>
+<div class="observablehq observablehq--block"><!--:8e6e0f4c:--></div>
+<div class="observablehq observablehq--block"><!--:60f6e6f3:--></div>
+<div class="observablehq observablehq--block">
+  <div class="observablehq--inspect observablehq--error">SyntaxError: Unexpected token (214:2)</div>
+</div>
+<div class="card">
+  <div class="card-title">
+    <h1>Timeline Events</h1>
+  </div>
+  <div class="card-container">
+    <div id="cal-heatmap-index"></div>
+  </div>
+</div>
 <ul>
 <li>make scroll and have year at the bottom</li>
 <li>add granulatory - but not minute</li>
 <li>add a couple color options</li>
 </ul>
-<div id="cal-heatmap"></div>
-<div id="cal-heatmap-legend" style="{{" float:="" 'right'="" }}=""></div>
-<p>
-</p><h2 id="timeline-data" tabindex="-1"><a class="observablehq-header-anchor" href="#timeline-data">Timeline Data</a></h2>
-<div><observablehq-loading></observablehq-loading><!--:f15ffaed:--></div>
-<style>
-.hero, .grid {
-  max-width: none; /* Remove the restriction on these containers */
-  width: 100%; /* Allow full width */
-}
-
-.grid .card {
-  max-width: none; /* Ensure cards are also unrestricted */
-  margin: 1rem; /* Add spacing between cards */
-}
-
-p, table, figure, figcaption, h1, h2, h3, h4, h5, h6, ol, .katex-display {
-  max-width: 100%; /* Ensure all these elements can use full width */
-}
-</style></main>
+<div class="custom-collapse">
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-timeline"> 
+  <label for="collapse-toggle-timeline" class="collapse-title">
+    <div class="card-title" id="timeline"><h1>Timeline Data</h1></div>
+    <i class="expand-icon">+</i>
+  </label>
+  <div class="collapse-content">
+    <p>This table includes the timeline data used to create the heatmap shown above. You can download the information using the buttons below.</p>
+    <div id="timeline-events-container"></div> <!-- Placeholder for the table -->
+  </div>
+</div>
+</main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./forms"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-02-02T15:10:29">Feb 2, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-02-02T22:21:48">Feb 2, 2025</a>.</div>
 </footer>
 </div>
 </body>
