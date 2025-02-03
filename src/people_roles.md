@@ -1333,27 +1333,38 @@ createCombinedTaskTable();
   </div>
 </div>
 
-<div class ="card">
-  <div class="card-title" id="roles">
-    <h1>Roles</h1>
+<div class="custom-collapse">
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles"> 
+  <label for="collapse-toggle-roles" class="collapse-title">
+    <div class="card-title" id="roles"><h1>Roles</h1></div>
+    <i class="expand-icon">+</i>
+  </label>
+  <div class="collapse-content">
     <p>This section contains the descriptive information of all roles, and the overall roles summarized across tasks and members.</p>
-
-  <div id="role-table-container"></div>
+    <div id="role-table-container"></div>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-title">
-    <h1>Combined Roles Data</h1>
+<div class="custom-collapse">
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles-combined"> 
+  <label for="collapse-toggle-roles-combined" class="collapse-title">
+    <div class="card-title" id="roles-combined"><h1>Combined Roles Data</h1></div>
+    <i class="expand-icon">+</i>
+  </label>
+  <div class="collapse-content">
     <p>This table includes combined roles data for both individuals and teams, along with task and form completion statistics. You can download it using the buttons below.</p>
+    <div id="roles-table-container"></div> <!-- Placeholder for the table -->
   </div>
-  <div id="roles-table-container"></div> <!-- Placeholder for the table -->
 </div>
 
-<div class="card">
-  <div class="card-title">
-    <h1>Combined Task Data</h1>
+<div class="custom-collapse">
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined"> 
+  <label for="collapse-toggle-tasks-combined" class="collapse-title">
+    <div class="card-title" id="tasks-combined"><h1>Combined Task Data</h1></div>
+    <i class="expand-icon">+</i>
+  </label>
+  <div class="collapse-content">
     <p>This table includes task data for both individuals and teams, along with their assigned roles, statuses, and form data. You can download the information using the buttons below.</p>
+    <div id="combined-task-table-container"></div> <!-- Placeholder for the table -->
   </div>
-  <div id="combined-task-table-container"></div> <!-- Placeholder for the table -->
 </div>
