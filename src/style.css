@@ -338,3 +338,13 @@ a {
 .dropdown-container {
   margin-bottom: 20px;
 }
+
+.card-container h3 {
+    color: var(--theme-foreground-alt);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    text-wrap: balance;  
+    font-size: 22px;
+  }

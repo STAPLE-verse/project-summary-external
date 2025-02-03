@@ -1100,7 +1100,7 @@ function createCombinedRolesTable() {
         },
       },
     ],
-    language: {
+  language: {
     search: "Search All: ", // Customize the label for the search box
   },
   initComplete: function () {
