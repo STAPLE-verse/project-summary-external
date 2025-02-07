@@ -16,6 +16,8 @@
 <link rel="modulepreload" href="./_npm/@observablehq/plot@0.6.16/e828d8c8.js">
 <link rel="modulepreload" href="./_npm/d3@7.9.0/7055d4c5.js">
 <link rel="modulepreload" href="./_npm/cal-heatmap@4.2.4/fd3e0f70.js">
+<link rel="modulepreload" href="./_npm/cal-heatmap@4.2.4/plugins/Legend.7452c8b2.js">
+<link rel="modulepreload" href="./_npm/cal-heatmap@4.2.4/plugins/Tooltip.37672654.js">
 <link rel="modulepreload" href="./_npm/isoformat@0.2.1/c68fbd73.js">
 <link rel="modulepreload" href="./_npm/interval-tree-1d@1.0.4/a62ae5ce.js">
 <link rel="modulepreload" href="./_npm/d3-array@3.2.4/e95f898e.js">
@@ -48,6 +50,7 @@
 <link rel="modulepreload" href="./_npm/d3-timer@3.0.1/f31b5398.js">
 <link rel="modulepreload" href="./_npm/d3-transition@3.0.1/8debb4ba.js">
 <link rel="modulepreload" href="./_npm/d3-zoom@3.0.0/4b0cc581.js">
+<link rel="modulepreload" href="./_npm/@popperjs/core@2.11.8/10f7bcb4.js">
 <link rel="modulepreload" href="./_npm/binary-search-bounds@2.0.5/1ee6c50d.js">
 <link rel="modulepreload" href="./_npm/internmap@2.0.3/5eed35fd.js">
 <link rel="modulepreload" href="./_npm/delaunator@5.0.1/e67acb27.js">
@@ -60,11 +63,11 @@ import {registerFile} from "./_observablehq/stdlib.95bfbf7e.js";
 
 registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.8b37e4a5.json","lastModified":1736116661396,"size":16035});
 
-define({id: "23c74db4", outputs: ["Plot","d3","CalHeatmap"], body: async () => {
-const [Plot, d3, {default: CalHeatmap}] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js"), import("./_npm/cal-heatmap@4.2.4/fd3e0f70.js")]);
+define({id: "ac717d40", outputs: ["Plot","d3","CalHeatmap","Legend","Tooltip"], body: async () => {
+const [Plot, d3, {default: CalHeatmap}, {default: Legend}, {default: Tooltip}] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js"), import("./_npm/cal-heatmap@4.2.4/fd3e0f70.js"), import("./_npm/cal-heatmap@4.2.4/plugins/Legend.7452c8b2.js"), import("./_npm/cal-heatmap@4.2.4/plugins/Tooltip.37672654.js")]);
 // imports 
 
-return {Plot,d3,CalHeatmap};
+return {Plot,d3,CalHeatmap,Legend,Tooltip};
 }});
 
 define({id: "32820104", inputs: ["FileAttachment"], outputs: ["jsonData"], body: (FileAttachment) => {
@@ -189,40 +192,6 @@ const formattedEvents = eventsByDate.map(([date, value]) => ({
 return {eventsByDate,formattedEvents};
 }});
 
-define({id: "8e6e0f4c", inputs: ["CalHeatmap","formattedEvents","d3"], outputs: ["cal"], body: (CalHeatmap,formattedEvents,d3) => {
-const cal = new CalHeatmap();
-cal.paint({
-  itemSelector: '#cal-heatmap',
-  data: {
-    source: formattedEvents,
-    x: 'date', 
-    y: 'value',
-    }, 
-  range: 12, 
-  domain: { 
-    type: 'month', 
-    sort: 'asc', 
-    label: { 
-      position: 'top',
-      textAlign: 'middle'
-     } },
-  subDomain: { 
-    type: 'day',
-    //label: 'D',
-    radius: 2 },
-  scale: {
-    color: {
-      scheme: 'Greens',
-      type: 'linear',
-      domain: [0, d3.max(formattedEvents, d => d.value)],
-    } },
-    date: { 
-      start: new Date(d3.min(formattedEvents, d => new Date(d.date))) 
-      }
-});
-return {cal};
-}});
-
 define({id: "60f6e6f3", inputs: ["$","timelineEvents"], outputs: ["createTimelineEventsTable"], body: ($,timelineEvents) => {
 function createTimelineEventsTable() {
   // Create a table container dynamically
@@ -315,6 +284,167 @@ createTimelineEventsTable();
 return {createTimelineEventsTable};
 }});
 
+define({id: "cabd2913", inputs: ["d3","formattedEvents","CalHeatmap","Legend","Tooltip"], outputs: ["schemes","createDropdownsAndRepaintHeatmap","cal","repaintHeatmap"], body: (d3,formattedEvents,CalHeatmap,Legend,Tooltip) => {
+const schemes = {
+		sequential: [
+			'blues',
+			'greens',
+			'greys',
+			'oranges',
+			'purples',
+			'reds',
+			'bugn',
+			'bupu',
+			'gnbu',
+			'orrd',
+			'pubu',
+			'pubugn',
+			'purd',
+			'rdpu',
+			'ylgn',
+			'ylgnbu',
+			'ylorbr',
+			'ylorrd',
+			'cividis',
+			'inferno',
+			'magma',
+			'plasma',
+			'viridis',
+			'cubehelix',
+			'turbo',
+			'warm',
+			'cool',
+		],
+	};
+
+function createDropdownsAndRepaintHeatmap(containerId, heatmapContainerId) {
+  const intervals = [
+    { value: 0, label: "Year - Month" },
+    { value: 1, label: "Year - Week" },
+    { value: 2, label: "Year - Day" },
+    { value: 3, label: "Month - Week" },
+    { value: 4, label: "Month - Day" }
+  ];
+
+  const colorSchemes = schemes.sequential;
+
+  const dropdownContainer = document.getElementById(containerId);
+  dropdownContainer.innerHTML = `
+    <h3>Select Time Interval and Color Scheme</h3>
+    <select id="interval-select" class="interval-select"></select>
+    <select id="color-select" class="color-scheme-select"></select>
+  `;
+
+  const intervalSelect = document.getElementById("interval-select");
+  intervals.forEach(interval => {
+    const option = document.createElement("option");
+    option.value = interval.value;
+    option.textContent = interval.label;
+    intervalSelect.appendChild(option);
+  });
+  intervalSelect.value = "4";  // Default to Month - Day
+
+  const colorSelect = document.getElementById("color-select");
+  colorSchemes.forEach(scheme => {
+    const option = document.createElement("option");
+    option.value = scheme;
+    option.textContent = scheme.charAt(0).toUpperCase() + scheme.slice(1);
+    colorSelect.appendChild(option);
+  });
+  colorSelect.value = "blues";
+
+  repaintHeatmap(parseInt(intervalSelect.value), colorSelect.value, heatmapContainerId);
+
+  intervalSelect.addEventListener("change", () => {
+    repaintHeatmap(parseInt(intervalSelect.value), colorSelect.value, heatmapContainerId);
+  });
+
+  colorSelect.addEventListener("change", () => {
+    repaintHeatmap(parseInt(intervalSelect.value), colorSelect.value, heatmapContainerId);
+  });
+}
+
+let cal;
+
+function repaintHeatmap(intervalIndex, colorScheme, heatmapContainerId) {
+  document.getElementById(heatmapContainerId).innerHTML = "";
+
+  const intervals = {
+    0: ['year', 'month'],
+    1: ['year', 'week'],
+    2: ['year', 'day'],
+    3: ['month', 'week'],
+    4: ['month', 'day']
+  };
+
+  const minDate = d3.min(formattedEvents, d => new Date(d.date));
+  const maxDate = new Date(new Date(d3.max(formattedEvents, d => new Date(d.date))).getFullYear(), 11, 31);
+  
+  const maxValue = d3.max(formattedEvents, d => d.value) || 20;
+  
+  // Calculate min and max years, and the dynamic range of years
+  const minYear = minDate.getFullYear();
+  const maxYear = maxDate.getFullYear();
+  const yearRange = maxYear - minYear + 1;  // Ensure it covers all years
+
+  // Dynamically determine range: 1 year for "Year-Month" intervals, else use calculated range
+  let range = intervals[intervalIndex][0] === 'year' ? yearRange : 12;
+
+  const colorDomain = [0, 1, 2, 3, 4, maxValue];
+
+  cal = new CalHeatmap();
+  cal.paint({
+    date: { start: minDate, end: maxDate },
+	range: range,
+    data: {
+      source: formattedEvents,
+      x: 'date',
+      y: 'value'
+    },
+    scale: {
+      color: { type: 'linear', scheme: colorScheme, domain: colorDomain }
+    },
+    itemSelector: `#${heatmapContainerId}`,
+    domain: { type: intervals[intervalIndex][0] },
+    subDomain: { 
+		type: intervals[intervalIndex][1],
+		width: 15,  // Increase cell width
+      	height: 15,
+		radius: 3,
+	 },
+    subDomainTextFormat: "%d",
+    legend: colorDomain,
+    legendContainer: "#cal-legend-container",
+    domainDynamicDimension: false
+  },
+  [
+  [
+    Legend,
+    {
+        container: "#cal-legend-container",
+        label: "Event Count",
+        width: 500,
+        ticks: 5,  // Number of legend ticks
+        padding: [10, 10]  // Space around legend
+    },
+  ],
+    [
+    Tooltip,
+    {
+        enabled: true,
+		text: (timestamp, value) => {
+          const date = new Date(timestamp);
+          return `<strong>Date:</strong> ${date.toLocaleDateString()}<br><strong>Events:</strong> ${value || 0}`;
+        },
+    },
+  ],
+]);
+}
+
+createDropdownsAndRepaintHeatmap("interval-dropdown-container", "cal-heatmap-index");
+return {schemes,createDropdownsAndRepaintHeatmap,cal,repaintHeatmap};
+}});
+
 </script>
 </head>
 <body>
@@ -338,6 +468,7 @@ return {createTimelineEventsTable};
 <link rel="stylesheet" href="https://unpkg.com/cal-heatmap@4.2.4/dist/cal-heatmap.css">
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://unpkg.com/cal-heatmap@4.2.4/dist/cal-heatmap.min.js"></script>
+<script src="https://unpkg.com/cal-heatmap/dist/plugins/Legend.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -345,29 +476,26 @@ return {createTimelineEventsTable};
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<link rel="stylesheet" href="./_file/style.f552580f.css">
-<div class="observablehq observablehq--block"><!--:23c74db4:--></div>
+<link rel="stylesheet" href="./_file/style.fdd4ca95.css">
+<div class="observablehq observablehq--block"><!--:ac717d40:--></div>
 <div class="observablehq observablehq--block"><!--:32820104:--></div>
 <div class="observablehq observablehq--block"><!--:accb527d:--></div>
 <div class="observablehq observablehq--block"><!--:9f70f791:--></div>
-<div class="observablehq observablehq--block"><!--:8e6e0f4c:--></div>
 <div class="observablehq observablehq--block"><!--:60f6e6f3:--></div>
-<div class="observablehq observablehq--block">
-  <div class="observablehq--inspect observablehq--error">SyntaxError: Unexpected token (214:2)</div>
-</div>
+<div class="observablehq observablehq--block"><!--:cabd2913:--></div>
 <div class="card">
   <div class="card-title">
     <h1>Timeline Events</h1>
   </div>
   <div class="card-container">
-    <div id="cal-heatmap-index"></div>
+		<div id="interval-dropdown-container"></div>
+		<div id="cal-heatmap-container" class="scrollable-heatmap">
+			<div id="cal-heatmap-index"></div>
+		</div>
+		<div id="cal-legend-container" class="cal-legend-container"></div>
+	</div>
   </div>
-</div>
-<ul>
-<li>make scroll and have year at the bottom</li>
-<li>add granulatory - but not minute</li>
-<li>add a couple color options</li>
-</ul>
+
 <div class="custom-collapse">
   <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-timeline"> 
   <label for="collapse-toggle-timeline" class="collapse-title">
@@ -382,7 +510,7 @@ return {createTimelineEventsTable};
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./forms"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-02-02T22:21:48">Feb 2, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-02-07T14:05:18">Feb 7, 2025</a>.</div>
 </footer>
 </div>
 </body>

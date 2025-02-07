@@ -348,3 +348,41 @@ a {
     text-wrap: balance;  
     font-size: 22px;
   }
+
+.interval-select, .color-scheme-select {
+  margin-right: 10px;
+  padding: 5px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+svg[class^="plot-"][class$="-ramp"] text {
+  font-size: 14px !important;
+  font-weight: bold;
+}
+
+.heatmap-navigation {
+  text-align: center;
+  margin-top: 10px;
+}
+
+#cal-heatmap-index {
+  width: 100%; /* Take the full width of the container */
+  max-width: 100%;
+  height: auto;
+  white-space: nowrap;
+  position: relative;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.scrollable-heatmap {
+  overflow-x: auto;
+  max-width: 100%;
+  white-space: nowrap;
+  padding-bottom: 5px; /*for the scroll bar*/
+}
+
+.ch-domain-text {
+  font-size: 14px !important;
+}
