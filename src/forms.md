@@ -13,8 +13,12 @@ toc: false
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="style.css">
 
-```js 
-const jsonData = FileAttachment("./data/project_summary.json").json();
+```js data
+//data
+const jsonData = JSON.parse(sessionStorage.getItem("jsonData"))
+```
+
+```js
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 ```
@@ -247,4 +251,3 @@ console.log("Final Metadata Array:", jsonData);
     <div id="metadata-datatable-container" class="datatable-container"></div>
   </div>
 </div>
-

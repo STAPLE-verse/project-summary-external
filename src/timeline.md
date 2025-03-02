@@ -27,7 +27,7 @@ import Tooltip from "npm:cal-heatmap/plugins/Tooltip";
 
 ```js data
 //data
-const jsonData = FileAttachment("./data/project_summary.json").json();
+const jsonData = JSON.parse(sessionStorage.getItem("jsonData"))
 ```
 
 ```js create-timeline-data
@@ -237,36 +237,36 @@ createTimelineEventsTable();
 
 ```js calheatmap
 const schemes = {
-		sequential: [
-			'blues',
-			'greens',
-			'greys',
-			'oranges',
-			'purples',
-			'reds',
-			'bugn',
-			'bupu',
-			'gnbu',
-			'orrd',
-			'pubu',
-			'pubugn',
-			'purd',
-			'rdpu',
-			'ylgn',
-			'ylgnbu',
-			'ylorbr',
-			'ylorrd',
-			'cividis',
-			'inferno',
-			'magma',
-			'plasma',
-			'viridis',
-			'cubehelix',
-			'turbo',
-			'warm',
-			'cool',
-		],
-	};
+  sequential: [
+   'blues',
+   'greens',
+   'greys',
+   'oranges',
+   'purples',
+   'reds',
+   'bugn',
+   'bupu',
+   'gnbu',
+   'orrd',
+   'pubu',
+   'pubugn',
+   'purd',
+   'rdpu',
+   'ylgn',
+   'ylgnbu',
+   'ylorbr',
+   'ylorrd',
+   'cividis',
+   'inferno',
+   'magma',
+   'plasma',
+   'viridis',
+   'cubehelix',
+   'turbo',
+   'warm',
+   'cool',
+  ],
+ };
 
 function createDropdownsAndRepaintHeatmap(containerId, heatmapContainerId) {
   const intervals = [
@@ -346,7 +346,7 @@ function repaintHeatmap(intervalIndex, colorScheme, heatmapContainerId) {
   cal = new CalHeatmap();
   cal.paint({
     date: { start: minDate, end: maxDate },
-	range: range,
+ range: range,
     data: {
       source: formattedEvents,
       x: 'date',
@@ -358,11 +358,11 @@ function repaintHeatmap(intervalIndex, colorScheme, heatmapContainerId) {
     itemSelector: `#${heatmapContainerId}`,
     domain: { type: intervals[intervalIndex][0] },
     subDomain: { 
-		type: intervals[intervalIndex][1],
-		width: 15,  // Increase cell width
-      	height: 15,
-		radius: 3,
-	 },
+  type: intervals[intervalIndex][1],
+  width: 15,  // Increase cell width
+       height: 15,
+  radius: 3,
+  },
     subDomainTextFormat: "%d",
     legend: colorDomain,
     legendContainer: "#cal-legend-container",
@@ -383,7 +383,7 @@ function repaintHeatmap(intervalIndex, colorScheme, heatmapContainerId) {
     Tooltip,
     {
         enabled: true,
-		text: (timestamp, value) => {
+  text: (timestamp, value) => {
           const date = new Date(timestamp);
           return `<strong>Date:</strong> ${date.toLocaleDateString()}<br><strong>Events:</strong> ${value || 0}`;
         },
@@ -400,17 +400,17 @@ createDropdownsAndRepaintHeatmap("interval-dropdown-container", "cal-heatmap-ind
     <h1>Timeline Events</h1>
   </div>
   <div class="card-container">
-		<div id="interval-dropdown-container"></div>
-		<div id="cal-heatmap-container" class="scrollable-heatmap">
-			<div id="cal-heatmap-index"></div>
-		</div>
-		<div id="cal-legend-container" class="cal-legend-container"></div>
-	</div>
+  <div id="interval-dropdown-container"></div>
+  <div id="cal-heatmap-container" class="scrollable-heatmap">
+   <div id="cal-heatmap-index"></div>
+  </div>
+  <div id="cal-legend-container" class="cal-legend-container"></div>
+ </div>
   </div>
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-timeline"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-timeline">
   <label for="collapse-toggle-timeline" class="collapse-title">
     <div class="card-title" id="timeline"><h1>Timeline Data</h1></div>
     <i class="expand-icon">+</i>
@@ -420,6 +420,3 @@ createDropdownsAndRepaintHeatmap("interval-dropdown-container", "cal-heatmap-ind
     <div id="timeline-events-container"></div> <!-- Placeholder for the table -->
   </div>
 </div>
-
-
-

@@ -13,8 +13,12 @@ toc: false
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="style.css">
 
-```js libraries
-const jsonData = FileAttachment("./data/project_summary.json").json();
+```js data
+//data
+const jsonData = JSON.parse(sessionStorage.getItem("jsonData"))
+```
+
+```js
 import * as d3 from "npm:d3";
 import Plotly from "npm:plotly.js-dist";
 ```
@@ -522,7 +526,7 @@ createTaskDropdownAndDataTable("task-dropdown-container", "task-datatable-contai
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined">
   <label for="collapse-toggle-tasks-combined" class="collapse-title">
     <div class="card-title" id="tasks-combined"><h1>View Task Logs</h1></div>
     <i class="expand-icon">+</i>

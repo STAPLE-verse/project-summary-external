@@ -17,9 +17,12 @@ toc: false
  <h1>Contributor Information</h1>
 </div>
 
-```js  import-packages
-// import data and npm packages 
-const jsonData = FileAttachment("./data/project_summary.json").json();
+```js data
+//data
+const jsonData = JSON.parse(sessionStorage.getItem("jsonData"))
+```
+
+```js import-packages
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 import * as Inputs from "npm:@observablehq/inputs";
@@ -1304,7 +1307,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-members"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-members">
   <label for="collapse-toggle-members" class="collapse-title">
     <div class="card-title" id="members"><h1>Members</h1></div>
     <i class="expand-icon">+</i>
@@ -1319,7 +1322,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-teams"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-teams">
   <label for="collapse-toggle-teams" class="collapse-title">
     <div class="card-title" id="teams"><h1>Teams</h1></div>
     <i class="expand-icon">+</i>
@@ -1334,7 +1337,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles">
   <label for="collapse-toggle-roles" class="collapse-title">
     <div class="card-title" id="roles"><h1>Roles</h1></div>
     <i class="expand-icon">+</i>
@@ -1346,7 +1349,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles-combined"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles-combined">
   <label for="collapse-toggle-roles-combined" class="collapse-title">
     <div class="card-title" id="roles-combined"><h1>Combined Roles Data</h1></div>
     <i class="expand-icon">+</i>
@@ -1358,7 +1361,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined">
   <label for="collapse-toggle-tasks-combined" class="collapse-title">
     <div class="card-title" id="tasks-combined"><h1>Combined Task Data</h1></div>
     <i class="expand-icon">+</i>

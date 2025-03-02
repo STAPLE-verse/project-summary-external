@@ -5,8 +5,13 @@ toc: false
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
-```js load-data
-const jsonData = FileAttachment("./data/project_summary.json").json();
+```js
+const jsonfile = view(Inputs.file({label: "Upload your project JSON file", accept: ".json", required: true}));
+```
+
+```js
+const jsonData = await jsonfile.json();
+sessionStorage.setItem("jsonData", JSON.stringify(jsonData));
 ```
 
 ```js functions
