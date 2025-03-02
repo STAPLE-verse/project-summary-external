@@ -25,6 +25,12 @@ import Legend from "npm:cal-heatmap/plugins/Legend";
 import Tooltip from "npm:cal-heatmap/plugins/Tooltip";
 ```
 
+```js redirect
+if (sessionStorage.getItem("jsonData") == null) {
+  window.location.href = '/';
+}
+```
+
 ```js data
 //data
 const jsonData = JSON.parse(sessionStorage.getItem("jsonData"))
