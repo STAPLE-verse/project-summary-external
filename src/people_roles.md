@@ -17,9 +17,18 @@ toc: false
  <h1>Contributor Information</h1>
 </div>
 
-```js  import-packages
-// import data and npm packages 
-const jsonData = FileAttachment("./data/project_summary.json").json();
+```js redirect
+if (localStorage.getItem("jsonData") == null) {
+  window.location.href = '/';
+}
+```
+
+```js data
+//data
+const jsonData = JSON.parse(localStorage.getItem("jsonData"))
+```
+
+```js import-packages
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 import * as Inputs from "npm:@observablehq/inputs";
@@ -271,11 +280,11 @@ const individualsWithTaskData = projectMembersDataFrame.map((individual) => {
     projectMemberId: individual.projectMemberId,
     name: `${fullName} (${individual.username})`,
     numberOfTasksCompleted,
-    numberOfTasks, 
+    numberOfTasks,
     numberOfMetadataForms,
     allMetaDataForms,
     username: individual.username,
-    
+
   };
 });
 ```
@@ -322,7 +331,7 @@ const teamsDataArray = Array.from(teamsWithTaskData.values());
 ```
 
 ```js member-names
-// Get full names 
+// Get full names
 const uniqueMemberNames = new Set(
   individualsWithTaskData.map((individual) => individual.name)
 );
@@ -353,7 +362,7 @@ const dataCompletedTasks = [
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
-      colors: [themeColors.primary3, themeColors.secondary], 
+      colors: [themeColors.primary3, themeColors.secondary],
     },
   },
 ];
@@ -405,7 +414,7 @@ const dataCompletedForms = [
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
-      colors: [themeColors.primary4, themeColors.secondary], 
+      colors: [themeColors.primary4, themeColors.secondary],
     },
   },
 ];
@@ -521,14 +530,14 @@ function createRoleTable() {
 
   // Initialize the DataTable
   $("#role-table").DataTable({
-    data: updatedRolesDataFrame, 
+    data: updatedRolesDataFrame,
     columns: [
       { data: "name", title: "Role Name", visible: true }, // Renamed column
-      { data: "description", title: "Description", visible: true }, 
-      { data: "taxonomy", title: "Taxonomy", visible: true }, 
-      { data: "countInTasks", title: "Task Count", visible: true }, 
-      { data: "countInMembers", title: "Member Count", visible: true }, 
-      { data: "totalCount", title: "Total Count", visible: false }, 
+      { data: "description", title: "Description", visible: true },
+      { data: "taxonomy", title: "Taxonomy", visible: true },
+      { data: "countInTasks", title: "Task Count", visible: true },
+      { data: "countInMembers", title: "Member Count", visible: true },
+      { data: "totalCount", title: "Total Count", visible: false },
     ],
     paging: true,
     searching: true,
@@ -771,13 +780,13 @@ rolesByTeam.forEach((team) => {
   // Add progress bars for tasks and forms
   const progressBars = `
     <div class="progress-container">
-      <div class="progress-bar" 
-           style="width: ${team.tasksPercentComplete}%; background-color: ${themeColors.primary3};" 
+      <div class="progress-bar"
+           style="width: ${team.tasksPercentComplete}%; background-color: ${themeColors.primary3};"
            title="Tasks: ${team.tasksPercentComplete}% Completed"></div>
     </div>
     <div class="progress-container">
-      <div class="progress-bar" 
-           style="width: ${team.formsPercentComplete}%; background-color: ${themeColors.primary4};" 
+      <div class="progress-bar"
+           style="width: ${team.formsPercentComplete}%; background-color: ${themeColors.primary4};"
            title="Forms: ${team.formsPercentComplete}% Submitted"></div>
     </div>
   `;
@@ -811,8 +820,8 @@ function showDetails(type, id, name, detailsSectionId) {
   // Clear existing content and add the header first
   detailsSection.innerHTML = `
     <h2>${name} Details</h2>
-    <p>Here’s a summary of tasks and contributions for ${name}. The table contains the 
-    entire set of task logs for each person with the roles assigned to those task. You 
+    <p>Here’s a summary of tasks and contributions for ${name}. The table contains the
+    entire set of task logs for each person with the roles assigned to those task. You
     can download the table information by using the buttons at the bottom.</p>
   `;
 
@@ -880,25 +889,25 @@ function showDetails(type, id, name, detailsSectionId) {
       },
     ],
       columns: [
-    { data: "taskId", title: "Task Id", visible: false }, 
-    { data: "createdAt", title: "Created Date", visible: true }, 
-    { data: "updatedAt", title: "Updated Date", visible: true }, 
-    { data: "createdById", title: "Created By Id", visible: false }, 
-    { data: "formVersionId", title: "Form Version Id", visible: false }, 
-    { data: "deadline", title: "Deadline", visible: true }, 
-    { data: "name", title: "Task Name", visible: true }, 
-    { data: "description", title: "Task Description", visible: true }, 
-    { data: "status", title: "Task Completed", visible: true }, 
-    { data: "elementName", title: "Element Name", visible: true }, 
-    { data: "elementDescription", title: "Element Description", visible: true }, 
-    { data: "taskLogCreatedAt", title: "Task Log Date", visible: true }, 
-    { data: "taskLogStatus", title: "Task Log Completed", visible: true }, 
-    { data: "taskLogMetadata", title: "Form Data", visible: true }, 
-    { data: "completedById", title: "Completed By Id", visible: false }, 
-    { data: "assignedToId", title: "Assigned To Id", visible: false }, 
-    { data: "roles", title: "Roles", visible: true }, 
-    { data: "assignedTo", title: "Assigned To", visible: true }, 
-    { data: "completedBy", title: "Completed By", visible: true }, 
+    { data: "taskId", title: "Task Id", visible: false },
+    { data: "createdAt", title: "Created Date", visible: true },
+    { data: "updatedAt", title: "Updated Date", visible: true },
+    { data: "createdById", title: "Created By Id", visible: false },
+    { data: "formVersionId", title: "Form Version Id", visible: false },
+    { data: "deadline", title: "Deadline", visible: true },
+    { data: "name", title: "Task Name", visible: true },
+    { data: "description", title: "Task Description", visible: true },
+    { data: "status", title: "Task Completed", visible: true },
+    { data: "elementName", title: "Element Name", visible: true },
+    { data: "elementDescription", title: "Element Description", visible: true },
+    { data: "taskLogCreatedAt", title: "Task Log Date", visible: true },
+    { data: "taskLogStatus", title: "Task Log Completed", visible: true },
+    { data: "taskLogMetadata", title: "Form Data", visible: true },
+    { data: "completedById", title: "Completed By Id", visible: false },
+    { data: "assignedToId", title: "Assigned To Id", visible: false },
+    { data: "roles", title: "Roles", visible: true },
+    { data: "assignedTo", title: "Assigned To", visible: true },
+    { data: "completedBy", title: "Completed By", visible: true },
   ],
     language: {
       search: "Search All: ", // Customize the label for the search box
@@ -1259,7 +1268,7 @@ createCombinedTaskTable();
   <div class="card-title">
     <h1>Overall Statistics</h1>
   </div>
-  
+
   <p>This page displays statistics and information about each contributor including tasks, task logs, and assigned roles. Click on each box to learn more and view the data. </p>
 
   <div class="statistics-container">
@@ -1304,7 +1313,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-members"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-members">
   <label for="collapse-toggle-members" class="collapse-title">
     <div class="card-title" id="members"><h1>Members</h1></div>
     <i class="expand-icon">+</i>
@@ -1319,7 +1328,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-teams"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-teams">
   <label for="collapse-toggle-teams" class="collapse-title">
     <div class="card-title" id="teams"><h1>Teams</h1></div>
     <i class="expand-icon">+</i>
@@ -1334,7 +1343,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles">
   <label for="collapse-toggle-roles" class="collapse-title">
     <div class="card-title" id="roles"><h1>Roles</h1></div>
     <i class="expand-icon">+</i>
@@ -1346,7 +1355,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles-combined"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles-combined">
   <label for="collapse-toggle-roles-combined" class="collapse-title">
     <div class="card-title" id="roles-combined"><h1>Combined Roles Data</h1></div>
     <i class="expand-icon">+</i>
@@ -1358,7 +1367,7 @@ createCombinedTaskTable();
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined"> 
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined">
   <label for="collapse-toggle-tasks-combined" class="collapse-title">
     <div class="card-title" id="tasks-combined"><h1>Combined Task Data</h1></div>
     <i class="expand-icon">+</i>
