@@ -14,14 +14,14 @@ toc: false
 <link rel="stylesheet" href="style.css">
 
 ```js redirect
-if (sessionStorage.getItem("jsonData") == null) {
+if (localStorage.getItem("jsonData") == null) {
   window.location.href = '/';
 }
 ```
 
 ```js data
 //data
-const jsonData = JSON.parse(sessionStorage.getItem("jsonData"))
+const jsonData = JSON.parse(localStorage.getItem("jsonData"))
 ```
 
 ```js
@@ -229,7 +229,7 @@ const dataCompletedTasks = [
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
-      colors: [themeColors.primary, themeColors.secondary], 
+      colors: [themeColors.primary, themeColors.secondary],
     },
   },
 ];
@@ -295,7 +295,7 @@ const dataCompletedTasks = [
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
-      colors: [themeColors.primary2, themeColors.secondary], 
+      colors: [themeColors.primary2, themeColors.secondary],
     },
   },
 ];

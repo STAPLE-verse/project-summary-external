@@ -14,14 +14,14 @@ toc: false
 <link rel="stylesheet" href="style.css">
 
 ```js redirect
-if (sessionStorage.getItem("jsonData") == null) {
+if (localStorage.getItem("jsonData") == null) {
   window.location.href = '/';
 }
 ```
 
 ```js data
 //data
-const jsonData = JSON.parse(sessionStorage.getItem("jsonData"))
+const jsonData = JSON.parse(localStorage.getItem("jsonData"))
 ```
 
 ```js
@@ -119,9 +119,9 @@ function displayDynamicMetadataTable(selectedTaskName, containerId) {
     destroy: true, // Recreate the table each time
     columns: [
       { data: "taskName", title: "Task Name" },
-      { 
-        data: "assignedToId", 
-        title: "Assigned To", 
+      {
+        data: "assignedToId",
+        title: "Assigned To",
         render: function(data) {
           return convertAssignedToIdToName(data);  // Convert ID to name
         }

@@ -11,7 +11,7 @@ const jsonfile = view(Inputs.file({label: "Upload your project JSON file", accep
 
 ```js
 const jsonData = await jsonfile.json();
-sessionStorage.setItem("jsonData", JSON.stringify(jsonData));
+localStorage.setItem("jsonData", JSON.stringify(jsonData));
 ```
 
 ```js functions

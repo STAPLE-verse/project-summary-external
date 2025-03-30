@@ -17,7 +17,7 @@ toc: false
 <link rel="stylesheet" href="style.css">
 
 ```js libraries
-// imports 
+// imports
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 import CalHeatmap from "npm:cal-heatmap";
@@ -26,14 +26,14 @@ import Tooltip from "npm:cal-heatmap/plugins/Tooltip";
 ```
 
 ```js redirect
-if (sessionStorage.getItem("jsonData") == null) {
+if (localStorage.getItem("jsonData") == null) {
   window.location.href = '/';
 }
 ```
 
 ```js data
 //data
-const jsonData = JSON.parse(sessionStorage.getItem("jsonData"))
+const jsonData = JSON.parse(localStorage.getItem("jsonData"))
 ```
 
 ```js create-timeline-data
@@ -173,8 +173,8 @@ function createTimelineEventsTable() {
     destroy: true, // Recreate the table each time
     columns: [
       { data: "name", title: "Event Name" },
-      { 
-        data: "date", 
+      {
+        data: "date",
         title: "Event Date",
       },
       { data: "type", title: "Event Type" }
@@ -214,7 +214,7 @@ function createTimelineEventsTable() {
         },
       },
     ],
-    order: [[1, "asc"]], 
+    order: [[1, "asc"]],
     language: {
       search: "Search All: ", // Customize the label for the search box
     },
@@ -336,9 +336,9 @@ function repaintHeatmap(intervalIndex, colorScheme, heatmapContainerId) {
 
   const minDate = d3.min(formattedEvents, d => new Date(d.date));
   const maxDate = new Date(new Date(d3.max(formattedEvents, d => new Date(d.date))).getFullYear(), 11, 31);
-  
+
   const maxValue = d3.max(formattedEvents, d => d.value) || 20;
-  
+
   // Calculate min and max years, and the dynamic range of years
   const minYear = minDate.getFullYear();
   const maxYear = maxDate.getFullYear();
@@ -363,7 +363,7 @@ function repaintHeatmap(intervalIndex, colorScheme, heatmapContainerId) {
     },
     itemSelector: `#${heatmapContainerId}`,
     domain: { type: intervals[intervalIndex][0] },
-    subDomain: { 
+    subDomain: {
   type: intervals[intervalIndex][1],
   width: 15,  // Increase cell width
        height: 15,
