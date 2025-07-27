@@ -5,18 +5,18 @@ toc: false
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
-<div class="tip" label="Use your data">
+<div class="card" label="Use your data">
 
-You can upload your project summary data using the button below.
+<b>To view a project summary, upload the JSON data from the project below. </b>
 
-```js
+```js get-data
 let jsonData = JSON.parse(localStorage.getItem("jsonData"))
 
-const jsonfile = view(Inputs.file({label: "Upload your project JSON file", accept: ".json", required: true}));
+const jsonfile = view(Inputs.file({label: "Upload the project JSON file:", accept: ".json", required: true}));
 ```
 
-```js
-const reset = view(Inputs.button("Reset", {label: "Clear dashboard", reduce: () => {
+```js update-data
+const reset = view(Inputs.button("Reset", {label: "Clear dashboard:", reduce: () => {
   localStorage.removeItem("jsonData")
   window.location.href = '/';
 }}));
@@ -24,7 +24,7 @@ const reset = view(Inputs.button("Reset", {label: "Clear dashboard", reduce: () 
 
 </div>
 
-```js
+```js wait-for-data
 const jsonNew = await jsonfile.json();
 localStorage.setItem("jsonData", JSON.stringify(jsonNew));
 window.location.href = '/';
@@ -114,16 +114,13 @@ ${
         <center><a href="people_roles">Check out the contributors</a></center>
       </div>
       <div class="card">
-        <center><a href="elements_tasks">Check out the elements and tasks</a></center>
+        <center><a href="tasks">Check out the tasks</a></center>
       </div>
       <div class="card">
         <center><a href="forms">Check out the metadata</a></center>
       </div>
       <div class="card">
         <center><a href="timeline">Check out the timeline</a></center>
-      </div>
-        <div class="card">
-        <center><a id="dynamic-download"></a></center>
       </div>
     </div>
   ` : ""

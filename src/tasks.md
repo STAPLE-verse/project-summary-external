@@ -1,5 +1,5 @@
 ---
-title: Elements and Tasks
+title: Tasks
 toc: false
 ---
 
@@ -13,47 +13,35 @@ toc: false
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="style.css">
 
-```js redirect
-if (localStorage.getItem("jsonData") == null) {
-  window.location.href = '/';
-}
-```
-
-```js data
-//data
-const jsonData = JSON.parse(localStorage.getItem("jsonData"))
-```
-
-```js
-import * as d3 from "npm:d3";
-import Plotly from "npm:plotly.js-dist";
+```js libraries
+const jsonData = FileAttachment("./data/project_summary.json").json()
+import * as d3 from "npm:d3"
+import Plotly from "npm:plotly.js-dist"
 ```
 
 ```js overall-functions
 const getComputedThemeColors = () => {
-  const root = getComputedStyle(document.documentElement);
+  const root = getComputedStyle(document.documentElement)
   return {
     primary: root.getPropertyValue("--primary-color").trim(),
     primary2: root.getPropertyValue("--primary-color-2").trim(),
     primary3: root.getPropertyValue("--primary-color-3").trim(),
     primary4: root.getPropertyValue("--primary-color-4").trim(),
     secondary: root.getPropertyValue("--secondary-color").trim(),
-  };
-};
+  }
+}
 
-const themeColors = getComputedThemeColors();
+const themeColors = getComputedThemeColors()
 ```
 
 ```js get-people-roles-tasks
 // Extract project members where there is exactly one user in the `users` array
-const filteredMembers = jsonData.projectMembers.filter(
-  (member) => member.name === null
-);
+const filteredMembers = jsonData.projectMembers.filter((member) => member.name === null)
 
 // Map the data into a dataframe-like array of objects
 const projectMembersDataFrame = filteredMembers.map((member) => {
-  const user = member.users[0];
-  const roles = member.roles.map((role) => role.name).join(", ");
+  const user = member.users[0]
+  const roles = member.roles.map((role) => role.name).join(", ")
   return {
     projectMemberId: member.id,
     username: user.username || "Not Provided",
@@ -62,13 +50,11 @@ const projectMembersDataFrame = filteredMembers.map((member) => {
     roles: roles || "No Roles",
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
-  };
-});
+  }
+})
 
 // Extract project members where there is more than one user in the `users` array
-const groupMembers = jsonData.projectMembers.filter(
-  (member) => member.name !== null
-);
+const groupMembers = jsonData.projectMembers.filter((member) => member.name !== null)
 
 // Map the data into a dataframe-like array of objects, each user gets their own row
 const groupMembersDataFrame = groupMembers.flatMap((member) => {
@@ -81,8 +67,8 @@ const groupMembersDataFrame = groupMembers.flatMap((member) => {
     roles: member.roles.map((role) => role.name).join(", ") || "No Roles",
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
-  }));
-});
+  }))
+})
 
 // Extract tasks data and expand to include task logs
 const tasksDataFrame = jsonData.tasks.flatMap((task) =>
@@ -112,7 +98,7 @@ const tasksDataFrame = jsonData.tasks.flatMap((task) =>
         taxonomy: role.taxonomy,
       })),
     }))
-);
+)
 ```
 
 ```js task-with-names
@@ -121,73 +107,69 @@ const tasksWithNames = tasksDataFrame.map((task) => {
   const assignedName = (() => {
     const assignedTeam = groupMembersDataFrame.find(
       (team) => team.projectMemberId === task.assignedToId
-    );
+    )
 
     if (assignedTeam) {
-      return assignedTeam.groupName || "Unnamed Team";
+      return assignedTeam.groupName || "Unnamed Team"
     }
 
     const assignedMember = projectMembersDataFrame.find(
       (member) => member.projectMemberId === task.assignedToId
-    );
+    )
 
     if (assignedMember) {
-      const fullName =
-        `${assignedMember.firstName?.trim() || "Not Provided"} ${
-          assignedMember.lastName?.trim() || "Not Provided"
-        }`.trim();
+      const fullName = `${assignedMember.firstName?.trim() || "Not Provided"} ${
+        assignedMember.lastName?.trim() || "Not Provided"
+      }`.trim()
       return fullName === "Not Provided Not Provided"
         ? `No Name Provided (${assignedMember.username || "No Username"})`
-        : `${fullName} (${assignedMember.username || "No Username"})`;
+        : `${fullName} (${assignedMember.username || "No Username"})`
     }
-    return "Unassigned"; // Fallback if no match is found
-  })();
+    return "Unassigned" // Fallback if no match is found
+  })()
 
   // Find the completed by team or individual name
   const completedByName = (() => {
     if (task.completedById === "Task Created") {
-      return "Task Created"; // Special case handling
+      return "Task Created" // Special case handling
     }
 
     const completedByTeam = groupMembersDataFrame.find(
       (team) => team.projectMemberId === task.completedById
-    );
+    )
 
     if (completedByTeam) {
-      return completedByTeam.groupName || "Unnamed Team";
+      return completedByTeam.groupName || "Unnamed Team"
     }
 
     const completedByMember = projectMembersDataFrame.find(
       (member) => member.projectMemberId === task.completedById
-    );
+    )
 
     if (completedByMember) {
-      const fullName =
-        `${completedByMember.firstName?.trim() || "Not Provided"} ${
-          completedByMember.lastName?.trim() || "Not Provided"
-        }`.trim();
+      const fullName = `${completedByMember.firstName?.trim() || "Not Provided"} ${
+        completedByMember.lastName?.trim() || "Not Provided"
+      }`.trim()
       return fullName === "Not Provided Not Provided"
         ? `No Name Provided (${completedByMember.username || "No Username"})`
-        : `${fullName} (${completedByMember.username || "No Username"})`;
+        : `${fullName} (${completedByMember.username || "No Username"})`
     }
-    return "Unknown"; // Fallback if no match is found
-  })();
+    return "Unknown" // Fallback if no match is found
+  })()
 
   // Combine role names into a single string
-  const combinedRoles = task.roles.map((role) => role.name).join(", ");
+  const combinedRoles = task.roles.map((role) => role.name).join(", ")
 
   // Format taskLogMetadata as a JSON string if it contains data
   const formattedMetadata =
     task.taskLogMetadata && typeof task.taskLogMetadata === "object"
       ? JSON.stringify(task.taskLogMetadata, null, 2) // Pretty-printed JSON
-      : task.taskLogMetadata;
+      : task.taskLogMetadata
 
   // Convert taskLogStatus to a user-friendly format
-  const formattedStatus =
-    task.taskLogStatus === "COMPLETED" ? "Completed" : "Not Completed";
+  const formattedStatus = task.taskLogStatus === "COMPLETED" ? "Completed" : "Not Completed"
 
-  const formattedTaskStatus =
-    task.taskStatus === "COMPLETED" ? "Completed" : "Not Completed";
+  const formattedTaskStatus = task.taskStatus === "COMPLETED" ? "Completed" : "Not Completed"
 
   // Return a new object with updated values
   return {
@@ -198,41 +180,45 @@ const tasksWithNames = tasksDataFrame.map((task) => {
     taskLogMetadata: formattedMetadata, // Pretty-print JSON if applicable
     taskLogStatus: formattedStatus, // User-friendly status
     status: formattedTaskStatus,
-  };
-});
+  }
+})
 ```
 
 ```js task-statistics
 // Step 1: Deduplicate tasks by taskId, keeping the latest log for each task
-  const latestTasks = Array.from(
-    tasksDataFrame.reduce((map, task) => {
-      if (!map.has(task.taskId) || new Date(task.taskLogCreatedAt) > new Date(map.get(task.taskId).taskLogCreatedAt)) {
-        map.set(task.taskId, task); // Keep the latest task log
+const latestTasks = Array.from(
+  tasksDataFrame
+    .reduce((map, task) => {
+      if (
+        !map.has(task.taskId) ||
+        new Date(task.taskLogCreatedAt) > new Date(map.get(task.taskId).taskLogCreatedAt)
+      ) {
+        map.set(task.taskId, task) // Keep the latest task log
       }
-      return map;
-    }, new Map()).values()
-  );
+      return map
+    }, new Map())
+    .values()
+)
 
-  // Step 2: Calculate total tasks and completed tasks
-  const totalTasks = latestTasks.length;
-  const completedTasks = latestTasks.filter((task) => task.status === "COMPLETED").length;
-  // Step 3: Calculate percentage
-  const completedPercentage = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0;
-
+// Step 2: Calculate total tasks and completed tasks
+const totalTasks = latestTasks.length
+const completedTasks = latestTasks.filter((task) => task.status === "COMPLETED").length
+// Step 3: Calculate percentage
+const completedPercentage = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0
 
 const dataCompletedTasks = [
   {
     values: [completedTasks, totalTasks - completedTasks],
     labels: ["Completed", "Remaining"],
     type: "pie",
-    hole: 0.80, // Creates the donut effect
+    hole: 0.8, // Creates the donut effect
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
       colors: [themeColors.primary, themeColors.secondary],
     },
   },
-];
+]
 
 // Layout for the donut chart
 const layout = {
@@ -250,59 +236,58 @@ const layout = {
       y: 0.5,
     },
   ],
-showlegend: false, // Hide legend for simplicity
+  showlegend: false, // Hide legend for simplicity
   height: 150, // Adjust height for the card
   width: 150, // Adjust width for the card
   margin: { t: 10, b: 10, l: 10, r: 10 }, // Tighten the chart's margins
   plot_bgcolor: "rgba(0, 0, 0, 0)", // Transparent plot background
   paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent chart area background
-};
+}
 
 // Render the chart
-Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout);
+Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
 ```
 
 ```js tasklog-statistics
 const latestTaskLogs = Array.from(
   tasksDataFrame
     .reduce((map, log) => {
-      const key = `${log.taskId}-${log.assignedToId}`;
-      const existingLog = map.get(key);
+      const key = `${log.taskId}-${log.assignedToId}`
+      const existingLog = map.get(key)
 
       // Keep the log with the latest `createdAt`
       if (!existingLog || new Date(log.taskLogCreatedAt) > new Date(existingLog.taskLogCreatedAt)) {
-        map.set(key, log);
+        map.set(key, log)
       }
 
-      return map;
+      return map
     }, new Map())
     .values()
-);
+)
 
 // Count the total number of rows
-const totalTaskLogs = latestTaskLogs.length;
+const totalTaskLogs = latestTaskLogs.length
 
 // Count the number of tasks with a status of "COMPLETED"
-const completedTaskLogs = latestTaskLogs.filter(log => log.taskLogStatus === "COMPLETED").length;
-const completedPercentageLogs = ((completedTaskLogs / totalTaskLogs) * 100).toFixed(1); // Calculate percentage
+const completedTaskLogs = latestTaskLogs.filter((log) => log.taskLogStatus === "COMPLETED").length
+const completedPercentageLogs = ((completedTaskLogs / totalTaskLogs) * 100).toFixed(1) // Calculate percentage
 
 const dataCompletedTasks = [
   {
     values: [completedTaskLogs, totalTaskLogs - completedTaskLogs],
     labels: ["Completed", "Remaining"],
     type: "pie",
-    hole: 0.80, // Creates the donut effect
+    hole: 0.8, // Creates the donut effect
     textinfo: "none", // Hide default labels
     hoverinfo: "label+percent",
     marker: {
       colors: [themeColors.primary2, themeColors.secondary],
     },
   },
-];
+]
 
 // Layout for the donut chart
 const layout = {
-
   annotations: [
     {
       font: {
@@ -317,109 +302,109 @@ const layout = {
       y: 0.5,
     },
   ],
-showlegend: false, // Hide legend for simplicity
+  showlegend: false, // Hide legend for simplicity
   height: 150, // Adjust height for the card
   width: 150, // Adjust width for the card
   margin: { t: 10, b: 10, l: 10, r: 10 }, // Tighten the chart's margins
   plot_bgcolor: "rgba(0, 0, 0, 0)", // Transparent plot background
   paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent chart area background
-
-};
+}
 
 // Render the chart
-Plotly.newPlot("completed-tasklogs-chart", dataCompletedTasks, layout);
+Plotly.newPlot("completed-tasklogs-chart", dataCompletedTasks, layout)
 ```
 
 ```js avg-time-complete
-  // Step 1: Group logs by taskId and assignedToId
-  const taskLogMap = tasksDataFrame.reduce((map, log) => {
-    const key = `${log.taskId}-${log.assignedToId}`;
+// Step 1: Group logs by taskId and assignedToId
+const taskLogMap = tasksDataFrame.reduce((map, log) => {
+  const key = `${log.taskId}-${log.assignedToId}`
 
-    if (!map.has(key)) {
-      map.set(key, { firstLog: log, latestLog: log });
-    } else {
-      const currentEntry = map.get(key);
+  if (!map.has(key)) {
+    map.set(key, { firstLog: log, latestLog: log })
+  } else {
+    const currentEntry = map.get(key)
 
-      // Update first log if current log is earlier
-      if (new Date(log.taskLogCreatedAt) < new Date(currentEntry.firstLog.taskLogCreatedAt)) {
-        currentEntry.firstLog = log;
-      }
-
-      // Update latest log if current log is later
-      if (new Date(log.taskLogCreatedAt) > new Date(currentEntry.latestLog.taskLogCreatedAt)) {
-        currentEntry.latestLog = log;
-      }
+    // Update first log if current log is earlier
+    if (new Date(log.taskLogCreatedAt) < new Date(currentEntry.firstLog.taskLogCreatedAt)) {
+      currentEntry.firstLog = log
     }
 
-    return map;
-  }, new Map());
-
-  // Step 2: Calculate completion times for completed tasks
-  let totalCompletionTime = 0;
-  let completedCount = 0;
-
-  taskLogMap.forEach(({ firstLog, latestLog }) => {
-    // Only consider tasks that are completed
-    if (latestLog.taskLogStatus === "COMPLETED") {
-      const startTime = new Date(firstLog.taskLogCreatedAt);
-      const completionTime = new Date(latestLog.taskLogCreatedAt);
-
-      // Calculate time difference in days
-      const timeDiffInDays = (completionTime - startTime) / (1000 * 60 * 60 * 24);
-      totalCompletionTime += timeDiffInDays;
-      completedCount++;
+    // Update latest log if current log is later
+    if (new Date(log.taskLogCreatedAt) > new Date(currentEntry.latestLog.taskLogCreatedAt)) {
+      currentEntry.latestLog = log
     }
-  });
+  }
 
-  // Step 3: Calculate average completion time
-  const averageCompletionTime = completedCount > 0 ? (totalCompletionTime / completedCount).toFixed(2) : 0;
+  return map
+}, new Map())
+
+// Step 2: Calculate completion times for completed tasks
+let totalCompletionTime = 0
+let completedCount = 0
+
+taskLogMap.forEach(({ firstLog, latestLog }) => {
+  // Only consider tasks that are completed
+  if (latestLog.taskLogStatus === "COMPLETED") {
+    const startTime = new Date(firstLog.taskLogCreatedAt)
+    const completionTime = new Date(latestLog.taskLogCreatedAt)
+
+    // Calculate time difference in days
+    const timeDiffInDays = (completionTime - startTime) / (1000 * 60 * 60 * 24)
+    totalCompletionTime += timeDiffInDays
+    completedCount++
+  }
+})
+
+// Step 3: Calculate average completion time
+const averageCompletionTime =
+  completedCount > 0 ? (totalCompletionTime / completedCount).toFixed(2) : 0
 ```
 
 ```js task-log-download
 function createTaskDropdownAndDataTable(containerId, dataTableContainerId) {
   // Step 1: Get unique task names
-  const taskNames = [...new Set(tasksWithNames.map(task => task.name))];
+  const taskNames = [...new Set(tasksWithNames.map((task) => task.name))]
 
   // Step 2: Create a select dropdown for task names
-  const dropdownContainer = document.getElementById(containerId);
-  dropdownContainer.innerHTML = "<h3>Select a Task</h3>";
+  const dropdownContainer = document.getElementById(containerId)
+  dropdownContainer.innerHTML = "<h3>Select a Task</h3>"
 
-  const selectElement = document.createElement("select");
-  selectElement.className = "task-select";
-  selectElement.innerHTML = `<option value="">-- Select a Task --</option>`;
+  const selectElement = document.createElement("select")
+  selectElement.className = "task-select"
+  selectElement.innerHTML = `<option value="">-- Select a Task --</option>`
 
   // Step 3: Populate the dropdown options
-  taskNames.forEach(taskName => {
-    const option = document.createElement("option");
-    option.value = taskName;
-    option.textContent = taskName;
-    selectElement.appendChild(option);
-  });
+  taskNames.forEach((taskName) => {
+    const option = document.createElement("option")
+    option.value = taskName
+    option.textContent = taskName
+    selectElement.appendChild(option)
+  })
 
-  dropdownContainer.appendChild(selectElement);
+  dropdownContainer.appendChild(selectElement)
 
   // Step 4: Set up event listener to display the DataTable
   selectElement.addEventListener("change", () => {
-    const selectedTask = selectElement.value;
+    const selectedTask = selectElement.value
     if (selectedTask) {
-      displayTaskDataTable(selectedTask, dataTableContainerId);
+      displayTaskDataTable(selectedTask, dataTableContainerId)
     }
-  });
+  })
 }
 
 function displayTaskDataTable(taskName, containerId) {
   // Step 5: Filter the tasksWithNames to get the relevant rows
-  const filteredTasks = tasksWithNames.filter(task => task.name === taskName);
+  const filteredTasks = tasksWithNames.filter((task) => task.name === taskName)
 
   // Clear previous table content
-  const container = document.getElementById(containerId);
-  container.innerHTML = `<h3>Task Details for "${taskName}"</h3>`;
+  const container = document.getElementById(containerId)
+  container.innerHTML = `<h3>Task Details for "${taskName}"</h3>`
 
   // Create and append the table
-  const table = document.createElement("table");
-  table.id = "task-details-table";
-  table.className = "display";
-  container.appendChild(table);
+  const table = document.createElement("table")
+  table.id = "task-details-table"
+  table.className = "display"
+  container.appendChild(table)
 
   // Initialize the DataTable
   $("#task-details-table").DataTable({
@@ -459,11 +444,11 @@ function displayTaskDataTable(taskName, containerId) {
         title: `${taskName}_Task_Data`,
         className: "btn btn-primary",
         exportOptions: {
-          columns: ':visible', // Export visible columns only
+          columns: ":visible", // Export visible columns only
           format: {
             header: function (data, columnIdx) {
-              return $(table).DataTable().settings().init().columns[columnIdx].title || '';
-            }
+              return $(table).DataTable().settings().init().columns[columnIdx].title || ""
+            },
           },
         },
       },
@@ -473,11 +458,11 @@ function displayTaskDataTable(taskName, containerId) {
         title: `${taskName}_Task_Data`,
         className: "btn btn-success",
         exportOptions: {
-          columns: ':visible', // Export visible columns only
+          columns: ":visible", // Export visible columns only
           format: {
             header: function (data, columnIdx) {
-              return $(table).DataTable().settings().init().columns[columnIdx].title || '';
-            }
+              return $(table).DataTable().settings().init().columns[columnIdx].title || ""
+            },
           },
         },
       },
@@ -490,22 +475,22 @@ function displayTaskDataTable(taskName, containerId) {
       this.api()
         .columns()
         .every(function () {
-          const column = this;
-          const header = $(column.header());
+          const column = this
+          const header = $(column.header())
           const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
             .appendTo($(header).empty())
             .on("keyup change clear", function () {
               if (column.search() !== this.value) {
-                column.search(this.value).draw();
+                column.search(this.value).draw()
               }
-            });
-        });
+            })
+        })
     },
-  });
+  })
 }
 
 // Call the function to create the dropdown and set up the table display
-createTaskDropdownAndDataTable("task-dropdown-container", "task-datatable-container");
+createTaskDropdownAndDataTable("task-dropdown-container", "task-datatable-container")
 ```
 
 <div class ="card">
@@ -532,7 +517,7 @@ createTaskDropdownAndDataTable("task-dropdown-container", "task-datatable-contai
 </div>
 
 <div class="custom-collapse">
-  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined">
+  <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined"> 
   <label for="collapse-toggle-tasks-combined" class="collapse-title">
     <div class="card-title" id="tasks-combined"><h1>View Task Logs</h1></div>
     <i class="expand-icon">+</i>
