@@ -1278,7 +1278,7 @@ createCombinedTaskTable()
     </div>
   </a>
 
-  <a href="elements_tasks" class="card-link">
+  <a href="tasks" class="card-link">
     <div class="stat-card">
       <h3>Tasks Completed</h3>
       <p id="completed-tasks-chart"></p>

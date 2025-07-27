@@ -386,3 +386,75 @@ svg[class^="plot-"][class$="-ramp"] text {
 .ch-domain-text {
   font-size: 14px !important;
 }
+
+.observablehq label,
+.observablehq input,
+.observablehq select,
+.observablehq textarea {
+  font-size: 18px !important;
+  font-family: var(--sans-serif) !important;
+}
+
+/* Match any observable form block with inputs */
+/* Match any observable form block with inputs */
+.observablehq form[class^="inputs-"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start; /* Align elements at the top */
+  gap: 1rem; /* spacing between label and input */
+}
+
+
+/* Align labels and inputs with more even spacing */
+.observablehq form[class^="inputs-"] label {
+  flex: 0 0 250px;
+  font-size: 18px;
+  margin-right: 1rem;
+}
+
+.observablehq form[class^="inputs-"] div[class$="-input"] {
+  flex: 1;
+  min-width: 250px;
+}
+
+
+/* Style Observable form reset and submit buttons to match Browse button */
+.observablehq form[class^="inputs-"] button {
+  appearance: button;
+  font-family: var(--sans-serif);
+  font-size: 18px;
+  padding: 0.4em 1em;
+  border: 1px solid var(--secondary-color);
+  border-radius: 4px;
+  background-color: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.observablehq form[class^="inputs-"] button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Match file input button styling */
+.observablehq input[type="file"]::file-selector-button {
+  font-family: var(--sans-serif);
+  font-size: 18px;
+  padding: 0.4em 1em;
+  border: 1px solid var(--secondary-color);
+  border-radius: 4px;
+  background-color: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Optional: hover effect for consistency */
+.observablehq input[type="file"]::file-selector-button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Override Observable Inputs layout variables */
+.observablehq [class^="inputs-"] {
+  --label-width: 160px;
+  --input-width: auto;
+  font-size: 18px;
+}
