@@ -18,7 +18,7 @@ const jsonfile = view(Inputs.file({label: "Upload the project JSON file:", accep
 ```js update-data
 const reset = view(Inputs.button("Reset", {label: "Clear dashboard:", reduce: () => {
   localStorage.removeItem("jsonData")
-  window.location.href = '/';
+  window.location.reload();
 }}));
 ```
 
@@ -27,7 +27,7 @@ const reset = view(Inputs.button("Reset", {label: "Clear dashboard:", reduce: ()
 ```js wait-for-data
 const jsonNew = await jsonfile.json();
 localStorage.setItem("jsonData", JSON.stringify(jsonNew));
-window.location.href = '/';
+window.location.reload();
 ```
 
 ${

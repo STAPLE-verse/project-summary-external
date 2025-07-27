@@ -30,18 +30,18 @@ const jsonfile = view(Inputs.file({label: "Upload the project JSON file:", accep
 return {jsonData,jsonfile};
 }});
 
-define({id: "ae4a2371", inputs: ["view","Inputs","localStorage"], outputs: ["reset"], body: (view,Inputs,localStorage) => {
+define({id: "c651bc0c", inputs: ["view","Inputs","localStorage"], outputs: ["reset"], body: (view,Inputs,localStorage) => {
 const reset = view(Inputs.button("Reset", {label: "Clear dashboard:", reduce: () => {
   localStorage.removeItem("jsonData")
-  window.location.href = '/';
+  window.location.reload();
 }}));
 return {reset};
 }});
 
-define({id: "cf4d5963", inputs: ["jsonfile","localStorage"], outputs: ["jsonNew"], body: async (jsonfile,localStorage) => {
+define({id: "aa09f982", inputs: ["jsonfile","localStorage"], outputs: ["jsonNew"], body: async (jsonfile,localStorage) => {
 const jsonNew = await jsonfile.json();
 localStorage.setItem("jsonData", JSON.stringify(jsonNew));
-window.location.href = '/';
+window.location.reload();
 return {jsonNew};
 }});
 
@@ -153,9 +153,9 @@ display(await(
 <div class="card" label="Use your data">
 <p><b>To view a project summary, upload the JSON data from the project below. </b></p>
 <div class="observablehq observablehq--block"><!--:48789c43:--></div>
-<div class="observablehq observablehq--block"><!--:ae4a2371:--></div>
+<div class="observablehq observablehq--block"><!--:c651bc0c:--></div>
 </div>
-<div class="observablehq observablehq--block"><!--:cf4d5963:--></div>
+<div class="observablehq observablehq--block"><!--:aa09f982:--></div>
 <p><observablehq-loading></observablehq-loading><!--:7e220b7b:--></p>
 <div class="flex flex-row">
   <div class="card">
@@ -176,7 +176,7 @@ display(await(
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="next" href="./people_roles"><span>Contributors</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-07-27T18:00:01">Jul 27, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-07-27T18:06:13">Jul 27, 2025</a>.</div>
 </footer>
 </div>
 </body>
