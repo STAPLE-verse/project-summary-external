@@ -553,7 +553,7 @@ Plotly.newPlot("milestone-gantt-container", allChartData, layout)
 return {milestoneDataRaw,tickvals,ticktext,allChartData,layout};
 }});
 
-define({id: "c57027fa", inputs: ["jsonData","$"], outputs: ["createMilestoneTable"], body: (jsonData,$) => {
+define({id: "e46a6e22", inputs: ["jsonData","$"], outputs: ["createMilestoneTable"], body: (jsonData,$) => {
 function createMilestoneTable() {
   const container = document.getElementById("milestone-table-container")
   if (!container) return
@@ -627,9 +627,24 @@ function createMilestoneTable() {
     language: {
       search: "Search All: ",
     },
+    initComplete: function () {
+      // Optional: Add custom search inputs for each column
+      this.api()
+        .columns()
+        .every(function () {
+          const column = this
+          const header = $(column.header())
+          const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+            .appendTo($(header).empty())
+            .on("keyup change clear", function () {
+              if (column.search() !== this.value) {
+                column.search(this.value).draw()
+              }
+            })
+        })
+    },
   })
 }
-
 createMilestoneTable()
 return {createMilestoneTable};
 }});
@@ -673,7 +688,7 @@ return {createMilestoneTable};
 <div class="observablehq observablehq--block"><!--:1374c2d2:--></div>
 <div class="observablehq observablehq--block"><!--:f2a9e1df:--></div>
 <div class="observablehq observablehq--block"><!--:37228bdf:--></div>
-<div class="observablehq observablehq--block"><!--:c57027fa:--></div>
+<div class="observablehq observablehq--block"><!--:e46a6e22:--></div>
 <div class="card">
   <div class="card-title">
     <h1>Timeline Events</h1>
@@ -721,7 +736,7 @@ return {createMilestoneTable};
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./forms"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-07-27T18:06:13">Jul 27, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-07-28T21:17:47">Jul 28, 2025</a>.</div>
 </footer>
 </div>
 </body>

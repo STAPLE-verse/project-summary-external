@@ -576,9 +576,24 @@ function createMilestoneTable() {
     language: {
       search: "Search All: ",
     },
+    initComplete: function () {
+      // Optional: Add custom search inputs for each column
+      this.api()
+        .columns()
+        .every(function () {
+          const column = this
+          const header = $(column.header())
+          const input = $('<input type="text" placeholder="Search ' + header.text() + '" />')
+            .appendTo($(header).empty())
+            .on("keyup change clear", function () {
+              if (column.search() !== this.value) {
+                column.search(this.value).draw()
+              }
+            })
+        })
+    },
   })
 }
-
 createMilestoneTable()
 ```
 
