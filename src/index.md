@@ -2,6 +2,10 @@
 toc: false
 ---
 
+```js imports 
+import { marked } from "npm:marked"
+```
+
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
@@ -74,6 +78,29 @@ const formatDate = (dateString) => {
     hour12: true,
   });
 };
+
+// Helper: render Markdown to HTML string via marked
+function renderMarkdownToHtml(text) {
+  const src = text || ""
+  try {
+    return marked.parse(src)
+  } catch (e) {
+    console.error("Markdown parse error:", e)
+    return src
+  }
+}
+
+// Helper: render Markdown to a DOM node (avoids html.raw)
+function renderMarkdownNode(text) {
+  const wrapper = document.createElement("div")
+  try {
+    wrapper.innerHTML = marked.parse(text || "")
+  } catch (e) {
+    console.error("Markdown parse error:", e)
+    wrapper.textContent = text || ""
+  }
+  return wrapper
+}
 ```
 
 ```js download data
@@ -102,7 +129,10 @@ ${
       <div class="card">
         <p><b>Project Start Date:</b> ${formatDate(jsonData.createdAt)}</p>
         <p><b>Project Metadata and Settings Last Update:</b> ${formatDate(jsonData.updatedAt)}</p>
-        <p><b>Project Description:</b> ${jsonData.description || "No Description"}</p>
+        <div><b>Project Description:</b></div>
+        ${jsonData.description
+          ? renderMarkdownNode(jsonData.description)
+          : html`<p>No Description</p>`}
         <p><b>Project Metadata:</b></p>
         ${Object.entries(jsonData.metadata || {}).map(([key, value]) => html`
                   <p><strong>${toProperCase(key)}:</strong> ${value}</p>

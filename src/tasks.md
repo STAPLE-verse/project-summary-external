@@ -14,9 +14,18 @@ toc: false
 <link rel="stylesheet" href="style.css">
 
 ```js libraries
-const jsonData = FileAttachment("./data/project_summary.json").json()
+import { marked } from "npm:marked"
 import * as d3 from "npm:d3"
 import Plotly from "npm:plotly.js-dist"
+
+let jsonData = null
+try {
+  const cached = localStorage.getItem("jsonData")
+  if (cached) jsonData = JSON.parse(cached)
+} catch (e) {
+  console.error("Bad jsonData in localStorage:", e)
+  jsonData = null
+}
 ```
 
 ```js overall-functions
@@ -32,6 +41,17 @@ const getComputedThemeColors = () => {
 }
 
 const themeColors = getComputedThemeColors()
+
+// Helper: render markdown to HTML string for DataTables cells using marked
+function renderMarkdown(mdText) {
+  const src = mdText || ""
+  try {
+    return marked.parse(src)
+  } catch (e) {
+    console.error("Markdown parse error:", e)
+    return src
+  }
+}
 ```
 
 ```js get-people-roles-tasks
@@ -84,8 +104,8 @@ const tasksDataFrame = jsonData.tasks.flatMap((task) =>
       name: task.name || "Unnamed Task",
       description: task.description || "No Description",
       status: task.status || "Unknown Status",
-      elementName: task.element?.name || "No Element Name",
-      elementDescription: task.element?.description || "No Element Description",
+      milestoneName: task.milestone?.name || "No Milestone Name",
+      elementDescription: task.milestone?.description || "No Milestone Description",
       taskLogCreatedAt: log.createdAt,
       taskLogStatus: log.status || "Unknown Status",
       taskLogMetadata: log.metadata || "No Metadata",
@@ -420,8 +440,8 @@ function displayTaskDataTable(taskName, containerId) {
       { data: "name", title: "Task Name", visible: true },
       { data: "description", title: "Task Description", visible: true },
       { data: "status", title: "Task Completed", visible: true },
-      { data: "elementName", title: "Element Name", visible: true },
-      { data: "elementDescription", title: "Element Description", visible: true },
+      { data: "milestoneName", title: "Milestone Name", visible: true },
+      { data: "elementDescription", title: "Milestone Description", visible: true },
       { data: "taskLogCreatedAt", title: "Task Log Date", visible: true },
       { data: "taskLogStatus", title: "Task Log Completed", visible: true },
       { data: "taskLogMetadata", title: "Form Data", visible: true },
@@ -430,6 +450,14 @@ function displayTaskDataTable(taskName, containerId) {
       { data: "roles", title: "Roles", visible: true },
       { data: "assignedTo", title: "Assigned To", visible: true },
       { data: "completedBy", title: "Completed By", visible: true },
+    ],
+    columnDefs: [
+      {
+        targets: [7, 10], // Task Description, Milestone Description
+        render: function (data) {
+          return renderMarkdown(data)
+        },
+      },
     ],
     paging: true,
     searching: true,

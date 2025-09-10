@@ -19,11 +19,31 @@ toc: false
 
 ```js import-packages
 // import data and npm packages
-const jsonData = FileAttachment("./data/project_summary.json").json()
+let jsonData = null
+try {
+  const cached = localStorage.getItem("jsonData")
+  if (cached) jsonData = JSON.parse(cached)
+} catch (e) {
+  console.error("Bad jsonData in localStorage:", e)
+  jsonData = null
+}
 import * as Plot from "npm:@observablehq/plot"
 import * as d3 from "npm:d3"
 import * as Inputs from "npm:@observablehq/inputs"
 import Plotly from "npm:plotly.js-dist"
+import { marked } from "npm:marked"
+```
+
+```js data-source-indicator
+{
+  const el = document.createElement("p")
+  el.style.fontSize = "0.9rem"
+  el.style.opacity = "0.8"
+  const fromLocal = !!localStorage.getItem("jsonData")
+  el.textContent = `Data source: ${fromLocal ? "Uploaded (localStorage)" : "Bundled file"}`
+  console.log("people_roles data source:", fromLocal ? "localStorage" : "file", jsonData)
+  return el
+}
 ```
 
 ```js functions
@@ -62,7 +82,12 @@ function createHtmlTable(data, containerId, tableId) {
     const row = document.createElement("tr")
     headers.forEach((key) => {
       const td = document.createElement("td")
-      td.textContent = item[key] || "N/A" // Fallback to "N/A" if the value is null/undefined
+      // Render Description fields as Markdown
+      if (/description/i.test(key)) {
+        td.innerHTML = renderMarkdown(item[key] || "") || "N/A"
+      } else {
+        td.textContent = item[key] || "N/A" // Fallback to "N/A" if the value is null/undefined
+      }
       row.appendChild(td)
     })
     tbody.appendChild(row)
@@ -85,6 +110,17 @@ const getComputedThemeColors = () => {
 }
 
 const themeColors = getComputedThemeColors()
+
+// Helper: render markdown to HTML string using marked
+function renderMarkdown(mdText) {
+  const src = mdText || ""
+  try {
+    return marked.parse(src)
+  } catch (e) {
+    console.error("Markdown parse error:", e)
+    return src
+  }
+}
 ```
 
 ```js create-donut-chart-function
@@ -173,8 +209,8 @@ const tasksDataFrame = jsonData.tasks.flatMap((task) =>
       name: task.name || "Unnamed Task",
       description: task.description || "No Description",
       status: task.status || "Unknown Status",
-      elementName: task.element?.name || "No Element Name",
-      elementDescription: task.element?.description || "No Element Description",
+      milestoneName: task.milestone?.name || "No Milestone Name",
+      milestoneDescription: task.milestone?.description || "No Milestone Description",
       taskLogCreatedAt: log.createdAt,
       taskLogStatus: log.status || "Unknown Status",
       taskLogMetadata: log.metadata || "No Metadata",
@@ -500,7 +536,7 @@ function createRoleTable() {
     return
   }
 
-  // Create the table element
+  // Create the table milestone
   const table = document.createElement("table")
   table.id = "role-table"
   table.className = "display"
@@ -519,6 +555,14 @@ function createRoleTable() {
       { data: "countInTasks", title: "Task Count", visible: true },
       { data: "countInMembers", title: "Member Count", visible: true },
       { data: "totalCount", title: "Total Count", visible: false },
+    ],
+    columnDefs: [
+      {
+        targets: 1, // Description column
+        render: function (data) {
+          return renderMarkdown(data)
+        },
+      },
     ],
     paging: true,
     searching: true,
@@ -885,8 +929,8 @@ function showDetails(type, id, name, detailsSectionId) {
       { data: "name", title: "Task Name", visible: true },
       { data: "description", title: "Task Description", visible: true },
       { data: "status", title: "Task Completed", visible: true },
-      { data: "elementName", title: "Element Name", visible: true },
-      { data: "elementDescription", title: "Element Description", visible: true },
+      { data: "milestoneName", title: "Milestone Name", visible: true },
+      { data: "milestoneDescription", title: "Milestone Description", visible: true },
       { data: "taskLogCreatedAt", title: "Task Log Date", visible: true },
       { data: "taskLogStatus", title: "Task Log Completed", visible: true },
       { data: "taskLogMetadata", title: "Form Data", visible: true },
@@ -895,6 +939,14 @@ function showDetails(type, id, name, detailsSectionId) {
       { data: "roles", title: "Roles", visible: true },
       { data: "assignedTo", title: "Assigned To", visible: true },
       { data: "completedBy", title: "Completed By", visible: true },
+    ],
+    columnDefs: [
+      {
+        targets: [7, 10], // Task Description, Milestone Description
+        render: function (data) {
+          return renderMarkdown(data)
+        },
+      },
     ],
     language: {
       search: "Search All: ", // Customize the label for the search box
@@ -1035,7 +1087,7 @@ function createCombinedRolesTable() {
     return
   }
 
-  // Create the table element
+  // Create the table milestone
   const table = document.createElement("table")
   table.id = "combined-roles-table"
   table.className = "display"
@@ -1130,8 +1182,8 @@ const combinedTaskData = tasksWithNames.map((task) => ({
   name: task.name || "Unnamed Task",
   description: task.description || "No Description",
   status: task.status || "Unknown Status",
-  elementName: task.elementName || "No Element Name",
-  elementDescription: task.elementDescription || "No Element Description",
+  milestoneName: task.milestoneName || "No Milestone Name",
+  milestoneDescription: task.milestoneDescription || "No Milestone Description",
   taskLogCreatedAt: task.taskLogCreatedAt || "N/A",
   taskLogStatus: task.taskLogStatus || "Not Completed",
   taskLogMetadata: task.taskLogMetadata || "No Metadata",
@@ -1151,7 +1203,7 @@ function createCombinedTaskTable() {
     return
   }
 
-  // Create the table element
+  // Create the table milestone
   const table = document.createElement("table")
   table.id = "combined-task-table"
   table.className = "display"
@@ -1173,8 +1225,8 @@ function createCombinedTaskTable() {
       { data: "name", title: "Task Name", visible: true },
       { data: "description", title: "Task Description", visible: true },
       { data: "status", title: "Task Completed", visible: true },
-      { data: "elementName", title: "Element Name", visible: true },
-      { data: "elementDescription", title: "Element Description", visible: true },
+      { data: "milestoneName", title: "Milestone Name", visible: true },
+      { data: "milestoneDescription", title: "Milestone Description", visible: true },
       { data: "taskLogCreatedAt", title: "Task Log Date", visible: true },
       { data: "taskLogStatus", title: "Task Log Completed", visible: true },
       { data: "taskLogMetadata", title: "Form Data", visible: true },
@@ -1183,6 +1235,14 @@ function createCombinedTaskTable() {
       { data: "roles", title: "Roles", visible: true },
       { data: "assignedTo", title: "Assigned To", visible: true },
       { data: "completedBy", title: "Completed By", visible: true },
+    ],
+    columnDefs: [
+      {
+        targets: [7, 10], // Task Description, Milestone Description
+        render: function (data) {
+          return renderMarkdown(data)
+        },
+      },
     ],
     paging: true,
     searching: true,

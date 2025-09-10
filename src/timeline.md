@@ -27,8 +27,14 @@ import Plotly from "npm:plotly.js-dist"
 ```
 
 ```js data
-//data
-const jsonData = FileAttachment("./data/project_summary.json").json()
+let jsonData = null
+try {
+  const cached = localStorage.getItem("jsonData")
+  if (cached) jsonData = JSON.parse(cached)
+} catch (e) {
+  console.error("Bad jsonData in localStorage:", e)
+  jsonData = null
+}
 ```
 
 ```js create-timeline-data

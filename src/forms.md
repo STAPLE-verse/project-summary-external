@@ -14,7 +14,14 @@ toc: false
 <link rel="stylesheet" href="style.css">
 
 ```js get-data
-const jsonData = FileAttachment("./data/project_summary.json").json()
+let jsonData = null
+try {
+  const cached = localStorage.getItem("jsonData")
+  if (cached) jsonData = JSON.parse(cached)
+} catch (e) {
+  console.error("Bad jsonData in localStorage:", e)
+  jsonData = null
+}
 import * as Plot from "npm:@observablehq/plot"
 import * as d3 from "npm:d3"
 ```
