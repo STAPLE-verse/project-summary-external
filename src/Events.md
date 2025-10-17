@@ -16,6 +16,10 @@ toc: false
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="style.css">
 
+<div class="hero">
+ <h1>Timeline and Milestones</h1>
+</div>
+
 ```js libraries
 // imports
 import * as Plot from "npm:@observablehq/plot"
@@ -34,6 +38,17 @@ try {
 } catch (e) {
   console.error("Bad jsonData in localStorage:", e)
   jsonData = null
+}
+const noData = !jsonData;
+if (noData) {
+  // Safe defaults so downstream cells don't error when nothing is loaded
+  jsonData = { tasks: [], projectMembers: [], milestones: [], name: "", createdAt: null };
+}
+```
+
+```js no-data-banner
+if (noData) {
+  html`<div class="card"><b>Please load project data on the home page to view this page.</b></div>`
 }
 ```
 
@@ -161,10 +176,10 @@ const eventsByDate = d3.rollups(
   (d) => d.dateFormat // Group by the formatted date
 )
 
-const formattedEvents = eventsByDate.map(([date, value]) => ({
+const formattedEvents = (eventsByDate || []).map(([date, value]) => ({
   date,
   value,
-}))
+}));
 ```
 
 ```js timeline-table
@@ -254,11 +269,23 @@ function createTimelineEventsTable() {
   })
 }
 
-// Call the function to initialize the DataTable
-createTimelineEventsTable()
+// Call the function to initialize the DataTable (only when data is present)
+if (!noData && timelineEvents.length) {
+  createTimelineEventsTable()
+} else {
+  const container = document.getElementById("timeline-events-container");
+  if (container) container.innerHTML = "<div class='card'><b>No timeline events to display yet.</b></div>";
+}
 ```
 
 ```js calheatmap
+if (noData || !formattedEvents.length) {
+  // Clear containers and show a simple message instead of initializing the heatmap
+  const heat = document.getElementById("cal-heatmap-index");
+  if (heat) heat.innerHTML = "<div class='card'><b>No timeline activity to visualize yet.</b></div>";
+  const legend = document.getElementById("cal-legend-container");
+  if (legend) legend.innerHTML = "";
+}
 const schemes = {
   sequential: [
     "blues",
@@ -423,7 +450,9 @@ function repaintHeatmap(intervalIndex, colorScheme, heatmapContainerId) {
   )
 }
 
-createDropdownsAndRepaintHeatmap("interval-dropdown-container", "cal-heatmap-index")
+if (!noData && formattedEvents.length) {
+  createDropdownsAndRepaintHeatmap("interval-dropdown-container", "cal-heatmap-index")
+}
 ```
 
 ```js milestone-gantt-chart
@@ -505,7 +534,12 @@ const layout = {
   margin: { l: 150, r: 30, t: 50, b: 40 },
 }
 
-Plotly.newPlot("milestone-gantt-container", allChartData, layout)
+if (milestoneDataRaw.length && allChartData.length) {
+  Plotly.newPlot("milestone-gantt-container", allChartData, layout)
+} else {
+  const cont = document.getElementById("milestone-gantt-container");
+  if (cont) cont.innerHTML = "<div class='card'><b>No milestones with start/end dates to show.</b></div>";
+}
 ```
 
 ```js milestone-table
@@ -600,7 +634,12 @@ function createMilestoneTable() {
     },
   })
 }
-createMilestoneTable()
+if (!noData && (jsonData.milestones || []).length) {
+  createMilestoneTable()
+} else {
+  const container = document.getElementById("milestone-table-container");
+  if (container) container.innerHTML = "<div class='card'><b>No milestones to display yet.</b></div>";
+}
 ```
 
 <div class ="card">

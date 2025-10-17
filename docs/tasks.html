@@ -13,8 +13,10 @@
 <link rel="modulepreload" href="./_observablehq/client.65fe86b7.js">
 <link rel="modulepreload" href="./_observablehq/runtime.9393ab6d.js">
 <link rel="modulepreload" href="./_observablehq/stdlib.95bfbf7e.js">
+<link rel="modulepreload" href="./_npm/marked@16.2.1/12e5ff21.js">
 <link rel="modulepreload" href="./_npm/d3@7.9.0/7055d4c5.js">
 <link rel="modulepreload" href="./_npm/plotly.js-dist@2.35.3/36ad902a.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/063eb405.js">
 <link rel="modulepreload" href="./_npm/d3-array@3.2.4/e95f898e.js">
 <link rel="modulepreload" href="./_npm/d3-axis@3.0.0/d44feff9.js">
 <link rel="modulepreload" href="./_npm/d3-brush@3.0.0/5830b12a.js">
@@ -52,18 +54,33 @@
 <script type="module">
 
 import {define} from "./_observablehq/client.65fe86b7.js";
-import {registerFile} from "./_observablehq/stdlib.95bfbf7e.js";
 
-registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.8b37e4a5.json","lastModified":1736116661396,"size":16035});
+define({id: "29faefe4", inputs: ["localStorage"], outputs: ["marked","d3","Plotly","jsonData","noData"], body: async (localStorage) => {
+const [{marked}, d3, {default: Plotly}] = await Promise.all([import("./_npm/marked@16.2.1/12e5ff21.js"), import("./_npm/d3@7.9.0/7055d4c5.js"), import("./_npm/plotly.js-dist@2.35.3/36ad902a.js")]);
 
-define({id: "60f4b895", inputs: ["FileAttachment"], outputs: ["jsonData","d3","Plotly"], body: async (FileAttachment) => {
-const [d3, {default: Plotly}] = await Promise.all([import("./_npm/d3@7.9.0/7055d4c5.js"), import("./_npm/plotly.js-dist@2.35.3/36ad902a.js")]);
-const jsonData = FileAttachment("./data/project_summary.json").json()
-
-return {jsonData,d3,Plotly};
+let jsonData = null
+try {
+  const cached = localStorage.getItem("jsonData")
+  if (cached) jsonData = JSON.parse(cached)
+} catch (e) {
+  console.error("Bad jsonData in localStorage:", e)
+  jsonData = null
+}
+const noData = !jsonData;
+if (noData) {
+  // Safe defaults so downstream cells don't error
+  jsonData = { projectMembers: [], tasks: [] };
+}
+return {marked,d3,Plotly,jsonData,noData};
 }});
 
-define({id: "5db9c91e", inputs: ["getComputedStyle"], outputs: ["getComputedThemeColors","themeColors"], body: (getComputedStyle) => {
+define({id: "fba00031", inputs: ["noData","html"], body: (noData,html) => {
+if (noData) {
+  html`<div class="card"><b>Please load project data on the home page to view this page.</b></div>`
+}
+}});
+
+define({id: "a1c265e5", inputs: ["getComputedStyle","marked"], outputs: ["getComputedThemeColors","themeColors","renderMarkdown"], body: (getComputedStyle,marked) => {
 const getComputedThemeColors = () => {
   const root = getComputedStyle(document.documentElement)
   return {
@@ -76,10 +93,21 @@ const getComputedThemeColors = () => {
 }
 
 const themeColors = getComputedThemeColors()
-return {getComputedThemeColors,themeColors};
+
+// Helper: render markdown to HTML string for DataTables cells using marked
+function renderMarkdown(mdText) {
+  const src = mdText || ""
+  try {
+    return marked.parse(src)
+  } catch (e) {
+    console.error("Markdown parse error:", e)
+    return src
+  }
+}
+return {getComputedThemeColors,themeColors,renderMarkdown};
 }});
 
-define({id: "2078a2ab", inputs: ["jsonData"], outputs: ["filteredMembers","projectMembersDataFrame","groupMembers","groupMembersDataFrame","tasksDataFrame"], body: (jsonData) => {
+define({id: "1a393a5c", inputs: ["jsonData"], outputs: ["filteredMembers","projectMembersDataFrame","groupMembers","groupMembersDataFrame","tasksDataFrame"], body: (jsonData) => {
 // Extract project members where there is exactly one user in the `users` array
 const filteredMembers = jsonData.projectMembers.filter((member) => member.name === null)
 
@@ -129,8 +157,8 @@ const tasksDataFrame = jsonData.tasks.flatMap((task) =>
       name: task.name || "Unnamed Task",
       description: task.description || "No Description",
       status: task.status || "Unknown Status",
-      elementName: task.element?.name || "No Element Name",
-      elementDescription: task.element?.description || "No Element Description",
+      milestoneName: task.milestone?.name || "No Milestone Name",
+      elementDescription: task.milestone?.description || "No Milestone Description",
       taskLogCreatedAt: log.createdAt,
       taskLogStatus: log.status || "Unknown Status",
       taskLogMetadata: log.metadata || "No Metadata",
@@ -231,7 +259,7 @@ const tasksWithNames = tasksDataFrame.map((task) => {
 return {tasksWithNames};
 }});
 
-define({id: "c0421d93", inputs: ["tasksDataFrame","themeColors","Plotly"], outputs: ["latestTasks","totalTasks","completedTasks","completedPercentage","dataCompletedTasks","layout"], body: (tasksDataFrame,themeColors,Plotly) => {
+define({id: "c89fb700", inputs: ["tasksDataFrame","themeColors","Plotly"], outputs: ["latestTasks","totalTasks","completedTasks","completedPercentage","dataCompletedTasks","layout"], body: (tasksDataFrame,themeColors,Plotly) => {
 // Step 1: Deduplicate tasks by taskId, keeping the latest log for each task
 const latestTasks = Array.from(
   tasksDataFrame
@@ -255,7 +283,7 @@ const completedPercentage = totalTasks > 0 ? ((completedTasks / totalTasks) * 10
 
 const dataCompletedTasks = [
   {
-    values: [completedTasks, totalTasks - completedTasks],
+    values: totalTasks ? [completedTasks, Math.max(0, totalTasks - completedTasks)] : [0, 1],
     labels: ["Completed", "Remaining"],
     type: "pie",
     hole: 0.8, // Creates the donut effect
@@ -296,7 +324,7 @@ Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
 return {latestTasks,totalTasks,completedTasks,completedPercentage,dataCompletedTasks,layout};
 }});
 
-define({id: "7857fbf1", inputs: ["tasksDataFrame","themeColors","Plotly"], outputs: ["latestTaskLogs","totalTaskLogs","completedTaskLogs","completedPercentageLogs","dataCompletedTasks","layout"], body: (tasksDataFrame,themeColors,Plotly) => {
+define({id: "3df900cd", inputs: ["tasksDataFrame","themeColors","Plotly"], outputs: ["latestTaskLogs","totalTaskLogs","completedTaskLogs","completedPercentageLogs","dataCompletedTasks","layout"], body: (tasksDataFrame,themeColors,Plotly) => {
 const latestTaskLogs = Array.from(
   tasksDataFrame
     .reduce((map, log) => {
@@ -318,11 +346,11 @@ const totalTaskLogs = latestTaskLogs.length
 
 // Count the number of tasks with a status of "COMPLETED"
 const completedTaskLogs = latestTaskLogs.filter((log) => log.taskLogStatus === "COMPLETED").length
-const completedPercentageLogs = ((completedTaskLogs / totalTaskLogs) * 100).toFixed(1) // Calculate percentage
+const completedPercentageLogs = totalTaskLogs ? ((completedTaskLogs / totalTaskLogs) * 100).toFixed(1) : 0
 
 const dataCompletedTasks = [
   {
-    values: [completedTaskLogs, totalTaskLogs - completedTaskLogs],
+    values: totalTaskLogs ? [completedTaskLogs, Math.max(0, totalTaskLogs - completedTaskLogs)] : [0, 1],
     labels: ["Completed", "Remaining"],
     type: "pie",
     hole: 0.8, // Creates the donut effect
@@ -410,7 +438,7 @@ const averageCompletionTime =
 return {taskLogMap,totalCompletionTime,completedCount,averageCompletionTime};
 }});
 
-define({id: "23875ec9", inputs: ["tasksWithNames","$"], outputs: ["createTaskDropdownAndDataTable","displayTaskDataTable"], body: (tasksWithNames,$) => {
+define({id: "ff3c3cdd", inputs: ["tasksWithNames","$","renderMarkdown"], outputs: ["createTaskDropdownAndDataTable","displayTaskDataTable"], body: (tasksWithNames,$,renderMarkdown) => {
 function createTaskDropdownAndDataTable(containerId, dataTableContainerId) {
   // Step 1: Get unique task names
   const taskNames = [...new Set(tasksWithNames.map((task) => task.name))]
@@ -470,8 +498,8 @@ function displayTaskDataTable(taskName, containerId) {
       { data: "name", title: "Task Name", visible: true },
       { data: "description", title: "Task Description", visible: true },
       { data: "status", title: "Task Completed", visible: true },
-      { data: "elementName", title: "Element Name", visible: true },
-      { data: "elementDescription", title: "Element Description", visible: true },
+      { data: "milestoneName", title: "Milestone Name", visible: true },
+      { data: "elementDescription", title: "Milestone Description", visible: true },
       { data: "taskLogCreatedAt", title: "Task Log Date", visible: true },
       { data: "taskLogStatus", title: "Task Log Completed", visible: true },
       { data: "taskLogMetadata", title: "Form Data", visible: true },
@@ -480,6 +508,14 @@ function displayTaskDataTable(taskName, containerId) {
       { data: "roles", title: "Roles", visible: true },
       { data: "assignedTo", title: "Assigned To", visible: true },
       { data: "completedBy", title: "Completed By", visible: true },
+    ],
+    columnDefs: [
+      {
+        targets: [7, 10], // Task Description, Milestone Description
+        render: function (data) {
+          return renderMarkdown(data)
+        },
+      },
     ],
     paging: true,
     searching: true,
@@ -561,10 +597,10 @@ averageCompletionTime
     <li class="observablehq-link"><a href="./">Project Summary</a></li>
   </ol>
   <ol>
-    <li class="observablehq-link"><a href="./people_roles">Contributors</a></li>
-    <li class="observablehq-link observablehq-link-active"><a href="./tasks">Tasks</a></li>
-    <li class="observablehq-link"><a href="./forms">Form Data</a></li>
-    <li class="observablehq-link"><a href="./timeline">Events</a></li>
+    <li class="observablehq-link"><a href="./Contributors">Contributors</a></li>
+    <li class="observablehq-link observablehq-link-active"><a href="./Tasks">Tasks</a></li>
+    <li class="observablehq-link"><a href="./Form_Data">Form Data</a></li>
+    <li class="observablehq-link"><a href="./Events">Events</a></li>
   </ol>
 </nav>
 <script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
@@ -579,14 +615,18 @@ averageCompletionTime
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="./_file/style.d05da4a1.css">
-<div class="observablehq observablehq--block"><!--:60f4b895:--></div>
-<div class="observablehq observablehq--block"><!--:5db9c91e:--></div>
-<div class="observablehq observablehq--block"><!--:2078a2ab:--></div>
+<div class="hero">
+ <h1>Task Information</h1>
+</div>
+<div class="observablehq observablehq--block"><!--:29faefe4:--></div>
+<div class="observablehq observablehq--block"><!--:fba00031:--></div>
+<div class="observablehq observablehq--block"><!--:a1c265e5:--></div>
+<div class="observablehq observablehq--block"><!--:1a393a5c:--></div>
 <div class="observablehq observablehq--block"><!--:c5c3e421:--></div>
-<div class="observablehq observablehq--block"><!--:c0421d93:--></div>
-<div class="observablehq observablehq--block"><!--:7857fbf1:--></div>
+<div class="observablehq observablehq--block"><!--:c89fb700:--></div>
+<div class="observablehq observablehq--block"><!--:3df900cd:--></div>
 <div class="observablehq observablehq--block"><!--:ef53a934:--></div>
-<div class="observablehq observablehq--block"><!--:23875ec9:--></div>
+<div class="observablehq observablehq--block"><!--:ff3c3cdd:--></div>
 <div class="card">
   <div class="card-title">
     <h1>Overall Task Statistics</h1>
@@ -622,8 +662,8 @@ averageCompletionTime
 </div>
 </main>
 <footer id="observablehq-footer">
-<nav><a rel="prev" href="./people_roles"><span>Contributors</span></a><a rel="next" href="./forms"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-07-28T21:17:47">Jul 28, 2025</a>.</div>
+<nav><a rel="prev" href="./Contributors"><span>Contributors</span></a><a rel="next" href="./Form_Data"><span>Form Data</span></a></nav>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-10-17T11:44:50">Oct 17, 2025</a>.</div>
 </footer>
 </div>
 </body>

@@ -19,6 +19,7 @@
 <link rel="modulepreload" href="./_npm/cal-heatmap@4.2.4/plugins/Legend.7452c8b2.js">
 <link rel="modulepreload" href="./_npm/cal-heatmap@4.2.4/plugins/Tooltip.37672654.js">
 <link rel="modulepreload" href="./_npm/plotly.js-dist@2.35.3/36ad902a.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/063eb405.js">
 <link rel="modulepreload" href="./_npm/isoformat@0.2.1/c68fbd73.js">
 <link rel="modulepreload" href="./_npm/interval-tree-1d@1.0.4/a62ae5ce.js">
 <link rel="modulepreload" href="./_npm/d3-array@3.2.4/e95f898e.js">
@@ -60,9 +61,6 @@
 <script type="module">
 
 import {define} from "./_observablehq/client.65fe86b7.js";
-import {registerFile} from "./_observablehq/stdlib.95bfbf7e.js";
-
-registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.8b37e4a5.json","lastModified":1736116661396,"size":16035});
 
 define({id: "84ee066e", outputs: ["Plot","d3","CalHeatmap","Legend","Tooltip","Plotly"], body: async () => {
 const [Plot, d3, {default: CalHeatmap}, {default: Legend}, {default: Tooltip}, {default: Plotly}] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js"), import("./_npm/cal-heatmap@4.2.4/fd3e0f70.js"), import("./_npm/cal-heatmap@4.2.4/plugins/Legend.7452c8b2.js"), import("./_npm/cal-heatmap@4.2.4/plugins/Tooltip.37672654.js"), import("./_npm/plotly.js-dist@2.35.3/36ad902a.js")]);
@@ -71,10 +69,27 @@ const [Plot, d3, {default: CalHeatmap}, {default: Legend}, {default: Tooltip}, {
 return {Plot,d3,CalHeatmap,Legend,Tooltip,Plotly};
 }});
 
-define({id: "7e2c02f5", inputs: ["FileAttachment"], outputs: ["jsonData"], body: (FileAttachment) => {
-//data
-const jsonData = FileAttachment("./data/project_summary.json").json()
-return {jsonData};
+define({id: "842b54f0", inputs: ["localStorage"], outputs: ["jsonData","noData"], body: (localStorage) => {
+let jsonData = null
+try {
+  const cached = localStorage.getItem("jsonData")
+  if (cached) jsonData = JSON.parse(cached)
+} catch (e) {
+  console.error("Bad jsonData in localStorage:", e)
+  jsonData = null
+}
+const noData = !jsonData;
+if (noData) {
+  // Safe defaults so downstream cells don't error when nothing is loaded
+  jsonData = { tasks: [], projectMembers: [], milestones: [], name: "", createdAt: null };
+}
+return {jsonData,noData};
+}});
+
+define({id: "fba00031", inputs: ["noData","html"], body: (noData,html) => {
+if (noData) {
+  html`<div class="card"><b>Please load project data on the home page to view this page.</b></div>`
+}
 }});
 
 define({id: "f72681dd", inputs: ["jsonData"], outputs: ["tasks","projectMembers","projectName","projectCreatedAt","milestones","projectMembersById","timelineEvents"], body: (jsonData) => {
@@ -194,7 +209,7 @@ timelineEvents = timelineEvents.map((event) => ({
 return {tasks,projectMembers,projectName,projectCreatedAt,milestones,projectMembersById,timelineEvents};
 }});
 
-define({id: "81836e43", inputs: ["d3","timelineEvents"], outputs: ["eventsByDate","formattedEvents"], body: (d3,timelineEvents) => {
+define({id: "843058ab", inputs: ["d3","timelineEvents"], outputs: ["eventsByDate","formattedEvents"], body: (d3,timelineEvents) => {
 // Aggregate events by date
 const eventsByDate = d3.rollups(
   timelineEvents,
@@ -202,14 +217,14 @@ const eventsByDate = d3.rollups(
   (d) => d.dateFormat // Group by the formatted date
 )
 
-const formattedEvents = eventsByDate.map(([date, value]) => ({
+const formattedEvents = (eventsByDate || []).map(([date, value]) => ({
   date,
   value,
-}))
+}));
 return {eventsByDate,formattedEvents};
 }});
 
-define({id: "1374c2d2", inputs: ["$","timelineEvents"], outputs: ["createTimelineEventsTable"], body: ($,timelineEvents) => {
+define({id: "a99fc31c", inputs: ["$","timelineEvents","noData"], outputs: ["createTimelineEventsTable"], body: ($,timelineEvents,noData) => {
 function createTimelineEventsTable() {
   // Create a table container dynamically
   const container = document.getElementById("timeline-events-container")
@@ -296,12 +311,24 @@ function createTimelineEventsTable() {
   })
 }
 
-// Call the function to initialize the DataTable
-createTimelineEventsTable()
+// Call the function to initialize the DataTable (only when data is present)
+if (!noData && timelineEvents.length) {
+  createTimelineEventsTable()
+} else {
+  const container = document.getElementById("timeline-events-container");
+  if (container) container.innerHTML = "<div class='card'><b>No timeline events to display yet.</b></div>";
+}
 return {createTimelineEventsTable};
 }});
 
-define({id: "f2a9e1df", inputs: ["d3","formattedEvents","CalHeatmap","Legend","Tooltip"], outputs: ["schemes","createDropdownsAndRepaintHeatmap","cal","repaintHeatmap"], body: (d3,formattedEvents,CalHeatmap,Legend,Tooltip) => {
+define({id: "d278d2ef", inputs: ["noData","formattedEvents","d3","CalHeatmap","Legend","Tooltip"], outputs: ["schemes","createDropdownsAndRepaintHeatmap","cal","repaintHeatmap"], body: (noData,formattedEvents,d3,CalHeatmap,Legend,Tooltip) => {
+if (noData || !formattedEvents.length) {
+  // Clear containers and show a simple message instead of initializing the heatmap
+  const heat = document.getElementById("cal-heatmap-index");
+  if (heat) heat.innerHTML = "<div class='card'><b>No timeline activity to visualize yet.</b></div>";
+  const legend = document.getElementById("cal-legend-container");
+  if (legend) legend.innerHTML = "";
+}
 const schemes = {
   sequential: [
     "blues",
@@ -466,11 +493,13 @@ function repaintHeatmap(intervalIndex, colorScheme, heatmapContainerId) {
   )
 }
 
-createDropdownsAndRepaintHeatmap("interval-dropdown-container", "cal-heatmap-index")
+if (!noData && formattedEvents.length) {
+  createDropdownsAndRepaintHeatmap("interval-dropdown-container", "cal-heatmap-index")
+}
 return {schemes,createDropdownsAndRepaintHeatmap,cal,repaintHeatmap};
 }});
 
-define({id: "37228bdf", inputs: ["jsonData","Plotly"], outputs: ["milestoneDataRaw","tickvals","ticktext","allChartData","layout"], body: (jsonData,Plotly) => {
+define({id: "0683c0d9", inputs: ["jsonData","Plotly"], outputs: ["milestoneDataRaw","tickvals","ticktext","allChartData","layout"], body: (jsonData,Plotly) => {
 const milestoneDataRaw = (jsonData.milestones || []).filter(
   (m) => m.startDate && m.endDate && m.id && m.name
 )
@@ -549,11 +578,16 @@ const layout = {
   margin: { l: 150, r: 30, t: 50, b: 40 },
 }
 
-Plotly.newPlot("milestone-gantt-container", allChartData, layout)
+if (milestoneDataRaw.length && allChartData.length) {
+  Plotly.newPlot("milestone-gantt-container", allChartData, layout)
+} else {
+  const cont = document.getElementById("milestone-gantt-container");
+  if (cont) cont.innerHTML = "<div class='card'><b>No milestones with start/end dates to show.</b></div>";
+}
 return {milestoneDataRaw,tickvals,ticktext,allChartData,layout};
 }});
 
-define({id: "e46a6e22", inputs: ["jsonData","$"], outputs: ["createMilestoneTable"], body: (jsonData,$) => {
+define({id: "8555c29c", inputs: ["jsonData","$","noData"], outputs: ["createMilestoneTable"], body: (jsonData,$,noData) => {
 function createMilestoneTable() {
   const container = document.getElementById("milestone-table-container")
   if (!container) return
@@ -645,7 +679,12 @@ function createMilestoneTable() {
     },
   })
 }
-createMilestoneTable()
+if (!noData && (jsonData.milestones || []).length) {
+  createMilestoneTable()
+} else {
+  const container = document.getElementById("milestone-table-container");
+  if (container) container.innerHTML = "<div class='card'><b>No milestones to display yet.</b></div>";
+}
 return {createMilestoneTable};
 }});
 
@@ -660,10 +699,10 @@ return {createMilestoneTable};
     <li class="observablehq-link"><a href="./">Project Summary</a></li>
   </ol>
   <ol>
-    <li class="observablehq-link"><a href="./people_roles">Contributors</a></li>
-    <li class="observablehq-link"><a href="./tasks">Tasks</a></li>
-    <li class="observablehq-link"><a href="./forms">Form Data</a></li>
-    <li class="observablehq-link observablehq-link-active"><a href="./timeline">Events</a></li>
+    <li class="observablehq-link"><a href="./Contributors">Contributors</a></li>
+    <li class="observablehq-link"><a href="./Tasks">Tasks</a></li>
+    <li class="observablehq-link"><a href="./Form_Data">Form Data</a></li>
+    <li class="observablehq-link observablehq-link-active"><a href="./Events">Events</a></li>
   </ol>
 </nav>
 <script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
@@ -681,14 +720,18 @@ return {createMilestoneTable};
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="./_file/style.d05da4a1.css">
+<div class="hero">
+ <h1>Timeline and Milestones</h1>
+</div>
 <div class="observablehq observablehq--block"><!--:84ee066e:--></div>
-<div class="observablehq observablehq--block"><!--:7e2c02f5:--></div>
+<div class="observablehq observablehq--block"><!--:842b54f0:--></div>
+<div class="observablehq observablehq--block"><!--:fba00031:--></div>
 <div class="observablehq observablehq--block"><!--:f72681dd:--></div>
-<div class="observablehq observablehq--block"><!--:81836e43:--></div>
-<div class="observablehq observablehq--block"><!--:1374c2d2:--></div>
-<div class="observablehq observablehq--block"><!--:f2a9e1df:--></div>
-<div class="observablehq observablehq--block"><!--:37228bdf:--></div>
-<div class="observablehq observablehq--block"><!--:e46a6e22:--></div>
+<div class="observablehq observablehq--block"><!--:843058ab:--></div>
+<div class="observablehq observablehq--block"><!--:a99fc31c:--></div>
+<div class="observablehq observablehq--block"><!--:d278d2ef:--></div>
+<div class="observablehq observablehq--block"><!--:0683c0d9:--></div>
+<div class="observablehq observablehq--block"><!--:8555c29c:--></div>
 <div class="card">
   <div class="card-title">
     <h1>Timeline Events</h1>
@@ -735,8 +778,8 @@ return {createMilestoneTable};
 </div>
 </main>
 <footer id="observablehq-footer">
-<nav><a rel="prev" href="./forms"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-07-28T21:17:47">Jul 28, 2025</a>.</div>
+<nav><a rel="prev" href="./Form_Data"><span>Form Data</span></a></nav>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-10-17T11:44:50">Oct 17, 2025</a>.</div>
 </footer>
 </div>
 </body>

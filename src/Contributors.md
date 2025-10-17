@@ -1,78 +1,68 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="generator" content="Observable Framework v1.13.0">
-<title>Contributors | Project Summary</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
-<link rel="preload" as="style" href="./_observablehq/theme-air,deep-space.9d6d3ba1.css">
-<link rel="preload" as="style" href="./_observablehq/stdlib/inputs.ea9fd553.css">
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
-<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,deep-space.9d6d3ba1.css">
-<link rel="stylesheet" type="text/css" href="./_observablehq/stdlib/inputs.ea9fd553.css">
-<link rel="modulepreload" href="./_observablehq/client.65fe86b7.js">
-<link rel="modulepreload" href="./_observablehq/runtime.9393ab6d.js">
-<link rel="modulepreload" href="./_observablehq/stdlib.95bfbf7e.js">
-<link rel="modulepreload" href="./_npm/@observablehq/plot@0.6.16/e828d8c8.js">
-<link rel="modulepreload" href="./_npm/d3@7.9.0/7055d4c5.js">
-<link rel="modulepreload" href="./_observablehq/stdlib/inputs.d397b6a8.js">
-<link rel="modulepreload" href="./_npm/plotly.js-dist@2.35.3/36ad902a.js">
-<link rel="modulepreload" href="./_npm/htl@0.3.1/063eb405.js">
-<link rel="modulepreload" href="./_npm/isoformat@0.2.1/c68fbd73.js">
-<link rel="modulepreload" href="./_npm/interval-tree-1d@1.0.4/a62ae5ce.js">
-<link rel="modulepreload" href="./_npm/d3-array@3.2.4/e95f898e.js">
-<link rel="modulepreload" href="./_npm/d3-axis@3.0.0/d44feff9.js">
-<link rel="modulepreload" href="./_npm/d3-brush@3.0.0/5830b12a.js">
-<link rel="modulepreload" href="./_npm/d3-chord@3.0.1/84d7b8e9.js">
-<link rel="modulepreload" href="./_npm/d3-color@3.1.0/2c0cdfa2.js">
-<link rel="modulepreload" href="./_npm/d3-contour@4.0.2/626bedc4.js">
-<link rel="modulepreload" href="./_npm/d3-delaunay@6.0.4/00c41b5d.js">
-<link rel="modulepreload" href="./_npm/d3-dispatch@3.0.1/b5f7cdc6.js">
-<link rel="modulepreload" href="./_npm/d3-drag@3.0.0/b22c5864.js">
-<link rel="modulepreload" href="./_npm/d3-dsv@3.0.1/407f7a1f.js">
-<link rel="modulepreload" href="./_npm/d3-ease@3.0.1/6f15f633.js">
-<link rel="modulepreload" href="./_npm/d3-fetch@3.0.1/ef1ec490.js">
-<link rel="modulepreload" href="./_npm/d3-force@3.0.0/5e1ff060.js">
-<link rel="modulepreload" href="./_npm/d3-format@3.1.0/5851d7ef.js">
-<link rel="modulepreload" href="./_npm/d3-geo@3.1.1/dcd02767.js">
-<link rel="modulepreload" href="./_npm/d3-hierarchy@3.1.2/f1db2593.js">
-<link rel="modulepreload" href="./_npm/d3-interpolate@3.0.1/034b7bcb.js">
-<link rel="modulepreload" href="./_npm/d3-path@3.1.0/4bb53638.js">
-<link rel="modulepreload" href="./_npm/d3-polygon@3.0.1/bbafde58.js">
-<link rel="modulepreload" href="./_npm/d3-quadtree@3.0.1/aa5b35a8.js">
-<link rel="modulepreload" href="./_npm/d3-random@3.0.1/32c7fec2.js">
-<link rel="modulepreload" href="./_npm/d3-scale@4.0.2/567840a0.js">
-<link rel="modulepreload" href="./_npm/d3-scale-chromatic@3.1.0/cf9b720b.js">
-<link rel="modulepreload" href="./_npm/d3-selection@3.0.0/5dcd62f4.js">
-<link rel="modulepreload" href="./_npm/d3-shape@3.2.0/f8e03c56.js">
-<link rel="modulepreload" href="./_npm/d3-time@3.1.0/5bc129e1.js">
-<link rel="modulepreload" href="./_npm/d3-time-format@4.1.0/19c92b44.js">
-<link rel="modulepreload" href="./_npm/d3-timer@3.0.1/f31b5398.js">
-<link rel="modulepreload" href="./_npm/d3-transition@3.0.1/8debb4ba.js">
-<link rel="modulepreload" href="./_npm/d3-zoom@3.0.0/4b0cc581.js">
-<link rel="modulepreload" href="./_npm/binary-search-bounds@2.0.5/1ee6c50d.js">
-<link rel="modulepreload" href="./_npm/internmap@2.0.3/5eed35fd.js">
-<link rel="modulepreload" href="./_npm/delaunator@5.0.1/e67acb27.js">
-<link rel="modulepreload" href="./_npm/robust-predicates@3.0.2/8ac9039b.js">
-<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
-<script type="module">
+---
+title: Contributors
+toc: false
+---
 
-import {define} from "./_observablehq/client.65fe86b7.js";
-import {registerFile} from "./_observablehq/stdlib.95bfbf7e.js";
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<link rel="stylesheet" href="style.css">
 
-registerFile("./data/project_summary.json", {"name":"./data/project_summary.json","mimeType":"application/json","path":"./_file/data/project_summary.8b37e4a5.json","lastModified":1736116661396,"size":16035});
+<div class="hero">
+ <h1>Contributor Information</h1>
+</div>
 
-define({id: "1c323f07", inputs: ["FileAttachment"], outputs: ["jsonData","Plot","d3","Inputs","Plotly"], body: async (FileAttachment) => {
-const [Plot, d3, Inputs, {default: Plotly}] = await Promise.all([import("./_npm/@observablehq/plot@0.6.16/e828d8c8.js"), import("./_npm/d3@7.9.0/7055d4c5.js"), import("./_observablehq/stdlib/inputs.d397b6a8.js"), import("./_npm/plotly.js-dist@2.35.3/36ad902a.js")]);
+```js import-packages
 // import data and npm packages
-const jsonData = FileAttachment("./data/project_summary.json").json()
+let jsonData = null
+try {
+  const cached = localStorage.getItem("jsonData")
+  if (cached) jsonData = JSON.parse(cached)
+} catch (e) {
+  console.error("Bad jsonData in localStorage:", e)
+  jsonData = null
+}
+const noData = !jsonData;
+if (noData) {
+  // Provide safe defaults so downstream cells don't error when nothing is loaded
+  jsonData = {
+    projectMembers: [],
+    tasks: [],
+    name: "",
+    metadata: {},
+    createdAt: null,
+    updatedAt: null,
+  };
+}
+import * as Plot from "npm:@observablehq/plot"
+import * as d3 from "npm:d3"
+import * as Inputs from "npm:@observablehq/inputs"
+import Plotly from "npm:plotly.js-dist"
+import { marked } from "npm:marked"
+```
 
-return {jsonData,Plot,d3,Inputs,Plotly};
-}});
+```js no-data-banner
+if (noData) {
+  html`<div class="card"><b>Please load project data on the home page to view this page.</b></div>`
+}
+```
 
-define({id: "eccd01e9", inputs: ["getComputedStyle"], outputs: ["createHtmlTable","getComputedThemeColors","themeColors"], body: (getComputedStyle) => {
+```js data-source-indicator
+const el = document.createElement("p")
+el.style.fontSize = "0.9rem"
+el.style.opacity = "0.8"
+const fromLocal = !!localStorage.getItem("jsonData")
+el.textContent = `Data source: ${fromLocal ? "Uploaded (localStorage)" : "Bundled file"}`
+console.log("people_roles data source:", fromLocal ? "localStorage" : "file", jsonData)
+el
+```
+
+```js functions
 function createHtmlTable(data, containerId, tableId) {
   const container = document.getElementById(containerId)
 
@@ -108,7 +98,12 @@ function createHtmlTable(data, containerId, tableId) {
     const row = document.createElement("tr")
     headers.forEach((key) => {
       const td = document.createElement("td")
-      td.textContent = item[key] || "N/A" // Fallback to "N/A" if the value is null/undefined
+      // Render Description fields as Markdown
+      if (/description/i.test(key)) {
+        td.innerHTML = renderMarkdown(item[key] || "") || "N/A"
+      } else {
+        td.textContent = item[key] || "N/A" // Fallback to "N/A" if the value is null/undefined
+      }
       row.appendChild(td)
     })
     tbody.appendChild(row)
@@ -131,10 +126,20 @@ const getComputedThemeColors = () => {
 }
 
 const themeColors = getComputedThemeColors()
-return {createHtmlTable,getComputedThemeColors,themeColors};
-}});
 
-define({id: "44edc8a3", inputs: ["d3","Plotly"], outputs: ["createDonutChart"], body: (d3,Plotly) => {
+// Helper: render markdown to HTML string using marked
+function renderMarkdown(mdText) {
+  const src = mdText || ""
+  try {
+    return marked.parse(src)
+  } catch (e) {
+    console.error("Markdown parse error:", e)
+    return src
+  }
+}
+```
+
+```js create-donut-chart-function
 function createDonutChart(data, containerId, titleText) {
   // Prepare data for Plotly donut chart
   const chartData = [
@@ -168,10 +173,9 @@ function createDonutChart(data, containerId, titleText) {
   // Render the chart in the specified container
   Plotly.newPlot(containerId, chartData, chartLayout)
 }
-return {createDonutChart};
-}});
+```
 
-define({id: "7bb808b4", inputs: ["jsonData"], outputs: ["filteredMembers","projectMembersDataFrame","groupMembers","groupMembersDataFrame","tasksDataFrame","memberRoles","taskRoles","allRoles","uniqueRolesDataFrame","rolesDataFrame"], body: (jsonData) => {
+```js get-people-roles-tasks
 // Extract project members where there is exactly one user in the `users` array
 const filteredMembers = jsonData.projectMembers.filter((member) => member.name === null)
 
@@ -221,8 +225,8 @@ const tasksDataFrame = jsonData.tasks.flatMap((task) =>
       name: task.name || "Unnamed Task",
       description: task.description || "No Description",
       status: task.status || "Unknown Status",
-      elementName: task.element?.name || "No Element Name",
-      elementDescription: task.element?.description || "No Element Description",
+      milestoneName: task.milestone?.name || "No Milestone Name",
+      milestoneDescription: task.milestone?.description || "No Milestone Description",
       taskLogCreatedAt: log.createdAt,
       taskLogStatus: log.status || "Unknown Status",
       taskLogMetadata: log.metadata || "No Metadata",
@@ -262,10 +266,9 @@ const rolesDataFrame = uniqueRolesDataFrame.map((role) => ({
   description: role.description || "No Description",
   taxonomy: role.taxonomy || "No Taxonomy",
 }))
-return {filteredMembers,projectMembersDataFrame,groupMembers,groupMembersDataFrame,tasksDataFrame,memberRoles,taskRoles,allRoles,uniqueRolesDataFrame,rolesDataFrame};
-}});
+```
 
-define({id: "b52f6c54", inputs: ["tasksDataFrame","projectMembersDataFrame"], outputs: ["latestTaskLogs","individualsWithTaskData"], body: (tasksDataFrame,projectMembersDataFrame) => {
+```js contributor-task-summaries
 // Deduplicate task logs to only include the latest log for each combination of `taskId` and `assignedToId`
 const latestTaskLogs = Array.from(
   tasksDataFrame
@@ -320,10 +323,9 @@ const individualsWithTaskData = projectMembersDataFrame.map((individual) => {
     username: individual.username,
   }
 })
-return {latestTaskLogs,individualsWithTaskData};
-}});
+```
 
-define({id: "b984da08", inputs: ["groupMembers","latestTaskLogs"], outputs: ["teamsWithTaskData","teamsDataArray"], body: (groupMembers,latestTaskLogs) => {
+```js team-task-summaries
 // Group task logs by team ID (assignedToId) and calculate completed tasks and metadata forms
 const teamsWithTaskData = groupMembers.reduce((teamsMap, team) => {
   // Initialize or update team entry
@@ -364,10 +366,9 @@ const teamsWithTaskData = groupMembers.reduce((teamsMap, team) => {
 
 // Convert the teams map to an array for rendering
 const teamsDataArray = Array.from(teamsWithTaskData.values())
-return {teamsWithTaskData,teamsDataArray};
-}});
+```
 
-define({id: "8619e3be", inputs: ["individualsWithTaskData","teamsDataArray","teamsWithTaskData"], outputs: ["uniqueMemberNames","numberOfUniqueMembers","uniqueTeamNames","numberOfUniqueTeams"], body: (individualsWithTaskData,teamsDataArray,teamsWithTaskData) => {
+```js member-names
 // Get full names
 const uniqueMemberNames = new Set(individualsWithTaskData.map((individual) => individual.name))
 
@@ -376,20 +377,19 @@ const numberOfUniqueMembers = uniqueMemberNames.size
 
 const uniqueTeamNames = new Set(teamsDataArray.map((team) => team.name))
 const numberOfUniqueTeams = teamsWithTaskData.size
-return {uniqueMemberNames,numberOfUniqueMembers,uniqueTeamNames,numberOfUniqueTeams};
-}});
+```
 
-define({id: "5fbe2d9b", inputs: ["latestTaskLogs","themeColors","Plotly"], outputs: ["totalTasks","completedTasks","completedPercentage","dataCompletedTasks","layout"], body: (latestTaskLogs,themeColors,Plotly) => {
+```js overall-tasks-statistics
 // Count the total number of rows
 const totalTasks = latestTaskLogs.length
 
 // Count the number of tasks with a status of "COMPLETED"
 const completedTasks = latestTaskLogs.filter((log) => log.taskLogStatus === "COMPLETED").length
-const completedPercentage = ((completedTasks / totalTasks) * 100).toFixed(1) // Calculate percentage
+const completedPercentage = totalTasks ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0 // Calculate percentage
 
 const dataCompletedTasks = [
   {
-    values: [completedTasks, totalTasks - completedTasks],
+    values: totalTasks ? [completedTasks, Math.max(0, totalTasks - completedTasks)] : [0, 1],
     labels: ["Completed", "Remaining"],
     type: "pie",
     hole: 0.8, // Creates the donut effect
@@ -427,10 +427,9 @@ const layout = {
 
 // Render the chart
 Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
-return {totalTasks,completedTasks,completedPercentage,dataCompletedTasks,layout};
-}});
+```
 
-define({id: "d0a8404f", inputs: ["latestTaskLogs","themeColors","Plotly"], outputs: ["totalForms","completedForms","completedFormPercentage","dataCompletedForms","layout"], body: (latestTaskLogs,themeColors,Plotly) => {
+```js overall-form-statistics
 // Count the total number of form tasks
 const totalForms = latestTaskLogs.filter((log) => log.taskLogMetadata !== "No Metadata").length
 
@@ -438,11 +437,11 @@ const totalForms = latestTaskLogs.filter((log) => log.taskLogMetadata !== "No Me
 const completedForms = latestTaskLogs.filter(
   (log) => log.taskLogMetadata !== "No Metadata" && log.taskLogStatus === "COMPLETED"
 ).length
-const completedFormPercentage = ((completedForms / totalForms) * 100).toFixed(1) // Calculate percentage
+const completedFormPercentage = totalForms ? ((completedForms / totalForms) * 100).toFixed(1) : 0 // Calculate percentage
 
 const dataCompletedForms = [
   {
-    values: [completedForms, totalForms - completedForms],
+    values: totalForms ? [completedForms, Math.max(0, totalForms - completedForms)] : [0, 1],
     labels: ["Completed", "Remaining"],
     type: "pie",
     hole: 0.8, // Creates the donut effect
@@ -479,10 +478,9 @@ const layout = {
 
 // Render the chart
 Plotly.newPlot("completed-forms-chart", dataCompletedForms, layout)
-return {totalForms,completedForms,completedFormPercentage,dataCompletedForms,layout};
-}});
+```
 
-define({id: "562127d1", inputs: ["latestTaskLogs","projectMembersDataFrame","rolesDataFrame","d3","Plotly"], outputs: ["roleCountsFromTasks","roleCountsFromMembers","updatedRolesDataFrame","roleLabels","roleValues","roleData","roleLayout"], body: (latestTaskLogs,projectMembersDataFrame,rolesDataFrame,d3,Plotly) => {
+```js overall-role-statistics
 // Step 1: Count roles in latestTaskLogs
 const roleCountsFromTasks = latestTaskLogs.reduce((acc, log) => {
   log.roles.forEach((role) => {
@@ -543,10 +541,9 @@ const roleLayout = {
 
 // Render the donut chart
 Plotly.newPlot("roles-donut-chart", roleData, roleLayout)
-return {roleCountsFromTasks,roleCountsFromMembers,updatedRolesDataFrame,roleLabels,roleValues,roleData,roleLayout};
-}});
+```
 
-define({id: "c9ee4d78", inputs: ["$","updatedRolesDataFrame"], outputs: ["createRoleTable"], body: ($,updatedRolesDataFrame) => {
+```js create-role-table
 function createRoleTable() {
   // Create a table container dynamically
   const container = document.getElementById("role-table-container")
@@ -555,7 +552,7 @@ function createRoleTable() {
     return
   }
 
-  // Create the table element
+  // Create the table milestone
   const table = document.createElement("table")
   table.id = "role-table"
   table.className = "display"
@@ -574,6 +571,14 @@ function createRoleTable() {
       { data: "countInTasks", title: "Task Count", visible: true },
       { data: "countInMembers", title: "Member Count", visible: true },
       { data: "totalCount", title: "Total Count", visible: false },
+    ],
+    columnDefs: [
+      {
+        targets: 1, // Description column
+        render: function (data) {
+          return renderMarkdown(data)
+        },
+      },
     ],
     paging: true,
     searching: true,
@@ -635,10 +640,9 @@ function createRoleTable() {
 
 // Call the function to initialize the table
 createRoleTable()
-return {createRoleTable};
-}});
+```
 
-define({id: "8aa2be9a", inputs: ["projectMembersDataFrame","latestTaskLogs","individualsWithTaskData"], outputs: ["rolesByIndividual"], body: (projectMembersDataFrame,latestTaskLogs,individualsWithTaskData) => {
+```js get-roles-individuals
 const rolesByIndividual = projectMembersDataFrame.map((individual) => {
   // Extract roles assigned to the individual
   const individualRoles = individual.roles.split(", ").map((role) => ({
@@ -686,10 +690,9 @@ const rolesByIndividual = projectMembersDataFrame.map((individual) => {
     allMetaDataForms: individualTaskData?.allMetaDataForms || 0,
   }
 })
-return {rolesByIndividual};
-}});
+```
 
-define({id: "992b21cb", inputs: ["rolesByIndividual","d3","themeColors","createDonutChart","showDetails"], body: (rolesByIndividual,d3,themeColors,createDonutChart,showDetails) => {
+```js make-donuts-roles-individuals
 rolesByIndividual.forEach((member) => {
   // Data for the donut chart
   const data = {
@@ -748,9 +751,9 @@ rolesByIndividual.forEach((member) => {
     showDetails("member", member.projectMemberId, member.name, "member-details-section")
   })
 });
-}});
+```
 
-define({id: "8a398293", inputs: ["teamsDataArray","latestTaskLogs"], outputs: ["rolesByTeam"], body: (teamsDataArray,latestTaskLogs) => {
+```js get-roles-teams
 const rolesByTeam = teamsDataArray.map((team) => {
   const roleCounts = {}
 
@@ -796,10 +799,9 @@ const rolesByTeam = teamsDataArray.map((team) => {
 })
 
 console.log(rolesByTeam)
-return {rolesByTeam};
-}});
+```
 
-define({id: "d7542717", inputs: ["rolesByTeam","d3","themeColors","createDonutChart","showDetails"], body: (rolesByTeam,d3,themeColors,createDonutChart,showDetails) => {
+```js make-donuts-teams
 rolesByTeam.forEach((team) => {
   const data = {
     values: team.roles.map((role) => role.count),
@@ -851,9 +853,9 @@ rolesByTeam.forEach((team) => {
     showDetails("team", team.teamId, team.teamName, "team-details-section")
   })
 });
-}});
+```
 
-define({id: "f8958dda", inputs: ["tasksWithNames","groupMembersDataFrame","createHtmlTable","$"], outputs: ["showDetails"], body: (tasksWithNames,groupMembersDataFrame,createHtmlTable,$) => {
+```js show-details-clicked-card
 function showDetails(type, id, name, detailsSectionId) {
   const detailsSection = document.getElementById(detailsSectionId)
 
@@ -943,8 +945,8 @@ function showDetails(type, id, name, detailsSectionId) {
       { data: "name", title: "Task Name", visible: true },
       { data: "description", title: "Task Description", visible: true },
       { data: "status", title: "Task Completed", visible: true },
-      { data: "elementName", title: "Element Name", visible: true },
-      { data: "elementDescription", title: "Element Description", visible: true },
+      { data: "milestoneName", title: "Milestone Name", visible: true },
+      { data: "milestoneDescription", title: "Milestone Description", visible: true },
       { data: "taskLogCreatedAt", title: "Task Log Date", visible: true },
       { data: "taskLogStatus", title: "Task Log Completed", visible: true },
       { data: "taskLogMetadata", title: "Form Data", visible: true },
@@ -953,6 +955,14 @@ function showDetails(type, id, name, detailsSectionId) {
       { data: "roles", title: "Roles", visible: true },
       { data: "assignedTo", title: "Assigned To", visible: true },
       { data: "completedBy", title: "Completed By", visible: true },
+    ],
+    columnDefs: [
+      {
+        targets: [7, 10], // Task Description, Milestone Description
+        render: function (data) {
+          return renderMarkdown(data)
+        },
+      },
     ],
     language: {
       search: "Search All: ", // Customize the label for the search box
@@ -975,10 +985,9 @@ function showDetails(type, id, name, detailsSectionId) {
     },
   })
 }
-return {showDetails};
-}});
+```
 
-define({id: "c5c3e421", inputs: ["tasksDataFrame","groupMembersDataFrame","projectMembersDataFrame"], outputs: ["tasksWithNames"], body: (tasksDataFrame,groupMembersDataFrame,projectMembersDataFrame) => {
+```js tasks-with-names-formatted
 const tasksWithNames = tasksDataFrame.map((task) => {
   // Find the assigned team or individual name
   const assignedName = (() => {
@@ -1059,10 +1068,9 @@ const tasksWithNames = tasksDataFrame.map((task) => {
     status: formattedTaskStatus,
   }
 })
-return {tasksWithNames};
-}});
+```
 
-define({id: "7489437c", inputs: ["rolesByIndividual","rolesByTeam"], outputs: ["combinedRolesData"], body: (rolesByIndividual,rolesByTeam) => {
+```js combined-roles
 // Combine roles by individual and team
 const combinedRolesData = [
   ...rolesByIndividual.map((individual) => ({
@@ -1084,10 +1092,9 @@ const combinedRolesData = [
     totalForms: team.totalForms || 0, // Default to 0 if missing
   })),
 ]
-return {combinedRolesData};
-}});
+```
 
-define({id: "55ea50b3", inputs: ["$","combinedRolesData"], outputs: ["createCombinedRolesTable"], body: ($,combinedRolesData) => {
+```js download-datatable-roles
 function createCombinedRolesTable() {
   // Create a table container dynamically
   const container = document.getElementById("roles-table-container")
@@ -1096,7 +1103,7 @@ function createCombinedRolesTable() {
     return
   }
 
-  // Create the table element
+  // Create the table milestone
   const table = document.createElement("table")
   table.id = "combined-roles-table"
   table.className = "display"
@@ -1177,10 +1184,9 @@ function createCombinedRolesTable() {
 
 // Call this function to initialize the table
 createCombinedRolesTable()
-return {createCombinedRolesTable};
-}});
+```
 
-define({id: "d17c0842", inputs: ["tasksWithNames"], outputs: ["combinedTaskData"], body: (tasksWithNames) => {
+```js combined-task-data
 // Combine task data for both members and teams
 const combinedTaskData = tasksWithNames.map((task) => ({
   taskId: task.taskId,
@@ -1192,8 +1198,8 @@ const combinedTaskData = tasksWithNames.map((task) => ({
   name: task.name || "Unnamed Task",
   description: task.description || "No Description",
   status: task.status || "Unknown Status",
-  elementName: task.elementName || "No Element Name",
-  elementDescription: task.elementDescription || "No Element Description",
+  milestoneName: task.milestoneName || "No Milestone Name",
+  milestoneDescription: task.milestoneDescription || "No Milestone Description",
   taskLogCreatedAt: task.taskLogCreatedAt || "N/A",
   taskLogStatus: task.taskLogStatus || "Not Completed",
   taskLogMetadata: task.taskLogMetadata || "No Metadata",
@@ -1203,10 +1209,9 @@ const combinedTaskData = tasksWithNames.map((task) => ({
   assignedTo: task.assignedTo || "Unassigned",
   completedBy: task.completedBy || "Unknown",
 }))
-return {combinedTaskData};
-}});
+```
 
-define({id: "982a955c", inputs: ["$","combinedTaskData"], outputs: ["createCombinedTaskTable"], body: ($,combinedTaskData) => {
+```js combined-data-download
 function createCombinedTaskTable() {
   const container = document.getElementById("combined-task-table-container")
   if (!container) {
@@ -1214,7 +1219,7 @@ function createCombinedTaskTable() {
     return
   }
 
-  // Create the table element
+  // Create the table milestone
   const table = document.createElement("table")
   table.id = "combined-task-table"
   table.className = "display"
@@ -1236,8 +1241,8 @@ function createCombinedTaskTable() {
       { data: "name", title: "Task Name", visible: true },
       { data: "description", title: "Task Description", visible: true },
       { data: "status", title: "Task Completed", visible: true },
-      { data: "elementName", title: "Element Name", visible: true },
-      { data: "elementDescription", title: "Element Description", visible: true },
+      { data: "milestoneName", title: "Milestone Name", visible: true },
+      { data: "milestoneDescription", title: "Milestone Description", visible: true },
       { data: "taskLogCreatedAt", title: "Task Log Date", visible: true },
       { data: "taskLogStatus", title: "Task Log Completed", visible: true },
       { data: "taskLogMetadata", title: "Form Data", visible: true },
@@ -1246,6 +1251,14 @@ function createCombinedTaskTable() {
       { data: "roles", title: "Roles", visible: true },
       { data: "assignedTo", title: "Assigned To", visible: true },
       { data: "completedBy", title: "Completed By", visible: true },
+    ],
+    columnDefs: [
+      {
+        targets: [7, 10], // Task Description, Milestone Description
+        render: function (data) {
+          return renderMarkdown(data)
+        },
+      },
     ],
     paging: true,
     searching: true,
@@ -1307,114 +1320,57 @@ function createCombinedTaskTable() {
 
 // Call the function to initialize the table
 createCombinedTaskTable()
-return {createCombinedTaskTable};
-}});
+```
 
-define({id: "8c316f6b", mode: "inline", inputs: ["numberOfUniqueMembers","display"], body: async (numberOfUniqueMembers,display) => {
-display(await(
-numberOfUniqueMembers
-))
-}});
+<div class ="card">
 
-define({id: "db16c6b2", mode: "inline", inputs: ["numberOfUniqueTeams","display"], body: async (numberOfUniqueTeams,display) => {
-display(await(
-numberOfUniqueTeams
-))
-}});
-
-</script>
-</head>
-<body>
-<input id="observablehq-sidebar-toggle" type="checkbox" title="Toggle sidebar">
-<label id="observablehq-sidebar-backdrop" for="observablehq-sidebar-toggle"></label>
-<nav id="observablehq-sidebar">
-  <ol>
-    <label id="observablehq-sidebar-close" for="observablehq-sidebar-toggle"></label>
-    <li class="observablehq-link"><a href="./">Project Summary</a></li>
-  </ol>
-  <ol>
-    <li class="observablehq-link observablehq-link-active"><a href="./people_roles">Contributors</a></li>
-    <li class="observablehq-link"><a href="./tasks">Tasks</a></li>
-    <li class="observablehq-link"><a href="./forms">Form Data</a></li>
-    <li class="observablehq-link"><a href="./timeline">Events</a></li>
-  </ol>
-</nav>
-<script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
-<div id="observablehq-center">
-<main id="observablehq-main" class="observablehq">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<link rel="stylesheet" href="./_file/style.d05da4a1.css">
-<div class="hero">
- <h1>Contributor Information</h1>
-</div>
-<div class="observablehq observablehq--block"><!--:1c323f07:--></div>
-<div class="observablehq observablehq--block"><!--:eccd01e9:--></div>
-<div class="observablehq observablehq--block"><!--:44edc8a3:--></div>
-<div class="observablehq observablehq--block"><!--:7bb808b4:--></div>
-<div class="observablehq observablehq--block"><!--:b52f6c54:--></div>
-<div class="observablehq observablehq--block"><!--:b984da08:--></div>
-<div class="observablehq observablehq--block"><!--:8619e3be:--></div>
-<div class="observablehq observablehq--block"><!--:5fbe2d9b:--></div>
-<div class="observablehq observablehq--block"><!--:d0a8404f:--></div>
-<div class="observablehq observablehq--block"><!--:562127d1:--></div>
-<div class="observablehq observablehq--block"><!--:c9ee4d78:--></div>
-<div class="observablehq observablehq--block"><!--:8aa2be9a:--></div>
-<div class="observablehq observablehq--block"><!--:992b21cb:--></div>
-<div class="observablehq observablehq--block"><!--:8a398293:--></div>
-<div class="observablehq observablehq--block"><!--:d7542717:--></div>
-<div class="observablehq observablehq--block"><!--:f8958dda:--></div>
-<div class="observablehq observablehq--block"><!--:c5c3e421:--></div>
-<div class="observablehq observablehq--block"><!--:7489437c:--></div>
-<div class="observablehq observablehq--block"><!--:55ea50b3:--></div>
-<div class="observablehq observablehq--block"><!--:d17c0842:--></div>
-<div class="observablehq observablehq--block"><!--:982a955c:--></div>
-<div class="card">
   <div class="card-title">
     <h1>Overall Statistics</h1>
   </div>
+  
   <p>This page displays statistics and information about each contributor including tasks, task logs, and assigned roles. Click on each box to learn more and view the data. </p>
+
   <div class="statistics-container">
     <a href="#members" class="card-link">
       <div class="stat-card">
         <h3>Total Members</h3>
-        <p id="stat-number-1"><observablehq-loading></observablehq-loading><!--:8c316f6b:--></p>
+        <p id="stat-number-1">${numberOfUniqueMembers}</p>
         <i class="fas fa-users" id="stat-number-1" aria-hidden="true"></i>
       </div>
     </a>
+
   <a href="#teams" class="card-link">
     <div class="stat-card">
       <h3>Total Teams</h3>
-      <p id="stat-number-2"><observablehq-loading></observablehq-loading><!--:db16c6b2:--></p>
+      <p id="stat-number-2">${numberOfUniqueTeams}</p>
       <i class="fas fa-user-friends" id="stat-number-2" aria-hidden="true"></i>
     </div>
   </a>
+
   <a href="#roles" class="card-link">
     <div class="stat-card">
       <h3>Roles</h3>
       <p id="roles-donut-chart"></p>
     </div>
   </a>
-  <a href="./tasks" class="card-link">
+
+  <a href="tasks" class="card-link">
     <div class="stat-card">
       <h3>Tasks Completed</h3>
       <p id="completed-tasks-chart"></p>
     </div>
   </a>
-  <a href="./forms" class="card-link">
+
+  <a href="forms" class="card-link">
     <div class="stat-card">
       <h3>Forms Submitted</h3>
       <p id="completed-forms-chart"></p>
     </div>
   </a>
+
   </div>
 </div>
+
 <div class="custom-collapse">
   <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-members"> 
   <label for="collapse-toggle-members" class="collapse-title">
@@ -1429,6 +1385,7 @@ numberOfUniqueTeams
     </div>
   </div>
 </div>
+
 <div class="custom-collapse">
   <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-teams"> 
   <label for="collapse-toggle-teams" class="collapse-title">
@@ -1443,6 +1400,7 @@ numberOfUniqueTeams
     </div>
   </div>
 </div>
+
 <div class="custom-collapse">
   <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles"> 
   <label for="collapse-toggle-roles" class="collapse-title">
@@ -1454,6 +1412,7 @@ numberOfUniqueTeams
     <div id="role-table-container"></div>
   </div>
 </div>
+
 <div class="custom-collapse">
   <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-roles-combined"> 
   <label for="collapse-toggle-roles-combined" class="collapse-title">
@@ -1465,6 +1424,7 @@ numberOfUniqueTeams
     <div id="roles-table-container"></div> <!-- Placeholder for the table -->
   </div>
 </div>
+
 <div class="custom-collapse">
   <input type="checkbox" class="toggle-checkbox" id="collapse-toggle-tasks-combined"> 
   <label for="collapse-toggle-tasks-combined" class="collapse-title">
@@ -1476,11 +1436,3 @@ numberOfUniqueTeams
     <div id="combined-task-table-container"></div> <!-- Placeholder for the table -->
   </div>
 </div>
-</main>
-<footer id="observablehq-footer">
-<nav><a rel="prev" href="./"><span>Project Summary</span></a><a rel="next" href="./tasks"><span>Tasks</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-07-28T21:17:47">Jul 28, 2025</a>.</div>
-</footer>
-</div>
-</body>
-</html>

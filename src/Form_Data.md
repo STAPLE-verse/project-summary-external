@@ -13,6 +13,10 @@ toc: false
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="style.css">
 
+<div class="hero">
+ <h1>Metadata Information</h1>
+</div>
+
 ```js get-data
 let jsonData = null
 try {
@@ -22,8 +26,19 @@ try {
   console.error("Bad jsonData in localStorage:", e)
   jsonData = null
 }
+const noData = !jsonData;
+if (noData) {
+  // Safe defaults so downstream cells don't error when nothing is loaded
+  jsonData = { tasks: [], projectMembers: [] };
+}
 import * as Plot from "npm:@observablehq/plot"
 import * as d3 from "npm:d3"
+```
+
+```js no-data-banner
+if (noData) {
+  html`<div class="card"><b>Please load project data on the home page to view this page.</b></div>`
+}
 ```
 
 ```js form-data
@@ -32,7 +47,7 @@ function extractFinalSubmittedMetadata(jsonData) {
   const finalSubmissionMap = new Map()
 
   jsonData.tasks.forEach((task) => {
-    task.taskLogs.forEach((log) => {
+    (task.taskLogs || []).forEach((log) => {
       if (log.metadata && log.metadata !== "No Metadata") {
         const key = `${task.id}-${log.assignedToId}` // Unique key per task-person combo
 
@@ -235,8 +250,10 @@ function convertMetadataToTableData(metadataArray) {
   return { tableData, allKeys: Array.from(allKeys) }
 }
 
-// Call the function to initialize the dropdown and DataTable
-createMetadataDropdownAndDataTable("metadata-dropdown-container", "metadata-datatable-container")
+// Call the function to initialize the dropdown and DataTable (only when data is present)
+if (!noData) {
+  createMetadataDropdownAndDataTable("metadata-dropdown-container", "metadata-datatable-container")
+}
 ```
 
 

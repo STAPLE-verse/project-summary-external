@@ -21,8 +21,11 @@ const jsonfile = view(Inputs.file({label: "Upload the project JSON file:", accep
 
 ```js update-data
 const reset = view(Inputs.button("Reset", {label: "Clear dashboard:", reduce: () => {
-  localStorage.removeItem("jsonData")
-  window.location.reload();
+  localStorage.removeItem("jsonData");
+  // bump a version token so other pages know things changed
+  localStorage.setItem("jsonData_version", String(Date.now()));
+  // force a hard navigation to the current directory's index (avoids SPA routing)
+  window.location.assign(".");
 }}));
 ```
 
@@ -112,9 +115,12 @@ const jsonUrl = URL.createObjectURL(jsonBlob);
 
 // Create a dynamic download link
 const downloadLink = document.createElement("a");
-downloadLink.href = jsonUrl; // Use the generated Blob URL
+// Use the generated Blob URL
+downloadLink.href = jsonUrl; 
+// Text for the link
 downloadLink.textContent = "Download Data";
-downloadLink.download = "project_summary.json"; // Suggest a filename for download
+// Suggest a filename for download
+downloadLink.download = "project_summary.json"; 
 
 // Insert the link into the appropriate DOM element
 const linkContainer = document.querySelector("#dynamic-download");
@@ -141,16 +147,16 @@ ${
     </div>
     <div class="grid grid-cols-3">
       <div class="card">
-        <center><a href="people_roles">Check out the contributors</a></center>
+        <center><a href="Contributors">Check out the contributors</a></center>
       </div>
       <div class="card">
-        <center><a href="tasks">Check out the tasks</a></center>
+        <center><a href="Tasks">Check out the tasks</a></center>
       </div>
       <div class="card">
-        <center><a href="forms">Check out the metadata</a></center>
+        <center><a href="Form_Data">Check out the metadata</a></center>
       </div>
       <div class="card">
-        <center><a href="timeline">Check out the timeline</a></center>
+        <center><a href="Events">Check out the timeline</a></center>
       </div>
     </div>
   ` : ""

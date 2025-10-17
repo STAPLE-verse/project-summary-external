@@ -13,6 +13,10 @@ toc: false
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="style.css">
 
+<div class="hero">
+ <h1>Task Information</h1>
+</div>
+
 ```js libraries
 import { marked } from "npm:marked"
 import * as d3 from "npm:d3"
@@ -25,6 +29,17 @@ try {
 } catch (e) {
   console.error("Bad jsonData in localStorage:", e)
   jsonData = null
+}
+const noData = !jsonData;
+if (noData) {
+  // Safe defaults so downstream cells don't error
+  jsonData = { projectMembers: [], tasks: [] };
+}
+```
+
+```js no-data-banner
+if (noData) {
+  html`<div class="card"><b>Please load project data on the home page to view this page.</b></div>`
 }
 ```
 
@@ -228,7 +243,7 @@ const completedPercentage = totalTasks > 0 ? ((completedTasks / totalTasks) * 10
 
 const dataCompletedTasks = [
   {
-    values: [completedTasks, totalTasks - completedTasks],
+    values: totalTasks ? [completedTasks, Math.max(0, totalTasks - completedTasks)] : [0, 1],
     labels: ["Completed", "Remaining"],
     type: "pie",
     hole: 0.8, // Creates the donut effect
@@ -290,11 +305,11 @@ const totalTaskLogs = latestTaskLogs.length
 
 // Count the number of tasks with a status of "COMPLETED"
 const completedTaskLogs = latestTaskLogs.filter((log) => log.taskLogStatus === "COMPLETED").length
-const completedPercentageLogs = ((completedTaskLogs / totalTaskLogs) * 100).toFixed(1) // Calculate percentage
+const completedPercentageLogs = totalTaskLogs ? ((completedTaskLogs / totalTaskLogs) * 100).toFixed(1) : 0
 
 const dataCompletedTasks = [
   {
-    values: [completedTaskLogs, totalTaskLogs - completedTaskLogs],
+    values: totalTaskLogs ? [completedTaskLogs, Math.max(0, totalTaskLogs - completedTaskLogs)] : [0, 1],
     labels: ["Completed", "Remaining"],
     type: "pie",
     hole: 0.8, // Creates the donut effect

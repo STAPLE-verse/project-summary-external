@@ -4,10 +4,10 @@ export default {
   title: "Project Summary",
 
   pages: [
-    {name: "Contributors", path: "/people_roles"},
-    {name: "Tasks", path: "/tasks"},
-    {name: "Form Data", path: "/forms"},
-    {name: "Events", path: "/timeline"}
+    {name: "Contributors", path: "/Contributors"},
+    {name: "Tasks", path: "/Tasks"},
+    {name: "Form Data", path: "/Form_Data"},
+    {name: "Events", path: "/Events"}
   ],
 
   // The pages and sections in the sidebar. If you don’t specify this option,
