@@ -1354,14 +1354,14 @@ createCombinedTaskTable()
     </div>
   </a>
 
-  <a href="tasks" class="card-link">
+  <a href="Tasks" class="card-link">
     <div class="stat-card">
       <h3>Tasks Completed</h3>
       <p id="completed-tasks-chart"></p>
     </div>
   </a>
 
-  <a href="forms" class="card-link">
+  <a href="Form_Data" class="card-link">
     <div class="stat-card">
       <h3>Forms Submitted</h3>
       <p id="completed-forms-chart"></p>
