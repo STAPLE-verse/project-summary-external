@@ -16,6 +16,15 @@ toc: false
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <link rel="stylesheet" href="style.css">
 
+<style>
+/* Prevent Gantt chart from squishing with many rows */
+.gantt-scroll-container {
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+</style>
+
 <div class="hero">
  <h1>Timeline and Milestones</h1>
 </div>
@@ -274,7 +283,7 @@ if (!noData && timelineEvents.length) {
   createTimelineEventsTable()
 } else {
   const container = document.getElementById("timeline-events-container");
-  if (container) container.innerHTML = "<div class='card'><b>No timeline events to display yet.</b></div>";
+  if (container) container.innerHTML = "<div><b>No timeline events to display yet.</b></div>";
 }
 ```
 
@@ -282,7 +291,7 @@ if (!noData && timelineEvents.length) {
 if (noData || !formattedEvents.length) {
   // Clear containers and show a simple message instead of initializing the heatmap
   const heat = document.getElementById("cal-heatmap-index");
-  if (heat) heat.innerHTML = "<div class='card'><b>No timeline activity to visualize yet.</b></div>";
+  if (heat) heat.innerHTML = "<div><b>No timeline activity to visualize yet.</b></div>";
   const legend = document.getElementById("cal-legend-container");
   if (legend) legend.innerHTML = "";
 }
@@ -465,6 +474,7 @@ milestoneDataRaw.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)).r
 const tickvals = []
 const ticktext = []
 const allChartData = []
+let rowCount = 0
 
 milestoneDataRaw.forEach((m) => {
   const milestoneId = String(m.id)
@@ -474,6 +484,7 @@ milestoneDataRaw.forEach((m) => {
   )
 
   milestoneTasks.forEach((t) => {
+    rowCount += 1
     const yLabel = `task-${t.id}`
     tickvals.push(yLabel)
     ticktext.push("↳ " + t.name)
@@ -494,6 +505,7 @@ milestoneDataRaw.forEach((m) => {
     })
   })
 
+  rowCount += 1
   tickvals.push(milestoneId)
   ticktext.push(m.name)
 
@@ -528,8 +540,9 @@ const layout = {
     type: "category",
     automargin: true,
     tickfont: { size: 14 },
+    tickpadding: 8,
   },
-  height: milestoneDataRaw.length * 40 + 100,
+  height: Math.min(rowCount * 40 + 120, 2000),
   showlegend: false,
   margin: { l: 150, r: 30, t: 50, b: 40 },
 }
@@ -538,7 +551,7 @@ if (milestoneDataRaw.length && allChartData.length) {
   Plotly.newPlot("milestone-gantt-container", allChartData, layout)
 } else {
   const cont = document.getElementById("milestone-gantt-container");
-  if (cont) cont.innerHTML = "<div class='card'><b>No milestones with start/end dates to show.</b></div>";
+  if (cont) cont.innerHTML = "<div><b>No milestones with start/end dates to show.</b></div>";
 }
 ```
 
@@ -638,7 +651,7 @@ if (!noData && (jsonData.milestones || []).length) {
   createMilestoneTable()
 } else {
   const container = document.getElementById("milestone-table-container");
-  if (container) container.innerHTML = "<div class='card'><b>No milestones to display yet.</b></div>";
+  if (container) container.innerHTML = "<div><b>No milestones to display yet.</b></div>";
 }
 ```
 
@@ -674,7 +687,9 @@ if (!noData && (jsonData.milestones || []).length) {
     <i class="expand-icon">+</i>
   </label>
   <div class="collapse-content">
-    <div id="milestone-gantt-container"></div>
+    <div class="gantt-scroll-container">
+      <div id="milestone-gantt-container"></div>
+    </div>
   </div>
 </div>
 
