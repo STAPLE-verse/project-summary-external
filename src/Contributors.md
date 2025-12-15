@@ -714,7 +714,7 @@ rolesByIndividual.forEach((member) => {
   }
 
   const hasRoles = data.values.length > 0
-  const emptyRolesNote = "No roles assigned yet"
+  const emptyRolesNote = "No roles"
 
   // Calculate completion percentages for tasks and forms (NaN-safe)
   const tasksPercentComplete = member.numberOfTasks
@@ -748,20 +748,23 @@ rolesByIndividual.forEach((member) => {
     card.appendChild(note)
   }
 
-  // Add progress bars for tasks and forms (only if denominator exists)
+  // Add progress bars for tasks and forms (with empty state notes if missing)
   const progressBars = `
     ${tasksPercentComplete !== null ? `
       <div class="progress-container">
         <div class="progress-bar"
              style="width: ${tasksPercentComplete}%; background-color: ${themeColors.primary3};"
              title="Tasks: ${tasksPercentComplete}% Completed"></div>
-      </div>` : ``}
+      </div>`
+      : `<p class="empty-note">No tasks</p>`}
+
     ${formsPercentComplete !== null ? `
       <div class="progress-container">
         <div class="progress-bar"
              style="width: ${formsPercentComplete}%; background-color: ${themeColors.primary4};"
              title="Forms: ${formsPercentComplete}% Submitted"></div>
-      </div>` : ``}
+      </div>`
+      : `<p class="empty-note">No forms</p>`}
   `
   card.innerHTML += progressBars // Append progress bars to the card
 
@@ -850,7 +853,7 @@ rolesByTeam.forEach((team) => {
   }
 
   const hasRoles = data.values.length > 0
-  const emptyRolesNote = "No roles assigned yet"
+  const emptyRolesNote = "No roles"
 
   // Create the card container
   const card = document.createElement("div")
@@ -875,20 +878,23 @@ rolesByTeam.forEach((team) => {
     card.appendChild(note)
   }
 
-  // Add progress bars for tasks and forms (only if denominator exists)
+  // Add progress bars for tasks and forms (with empty state notes if missing)
   const progressBars = `
     ${team.tasksPercentComplete !== null ? `
       <div class="progress-container">
         <div class="progress-bar"
              style="width: ${team.tasksPercentComplete}%; background-color: ${themeColors.primary3};"
              title="Tasks: ${team.tasksPercentComplete}% Completed"></div>
-      </div>` : ``}
+      </div>`
+      : `<p class="empty-note">No tasks</p>`}
+
     ${team.formsPercentComplete !== null ? `
       <div class="progress-container">
         <div class="progress-bar"
              style="width: ${team.formsPercentComplete}%; background-color: ${themeColors.primary4};"
              title="Forms: ${team.formsPercentComplete}% Submitted"></div>
-      </div>` : ``}
+      </div>`
+      : `<p class="empty-note">No forms</p>`}
   `
   card.innerHTML += progressBars // Append progress bars to the card
 
@@ -1406,7 +1412,7 @@ createCombinedTaskTable()
     <div class="stat-card">
       <h3>Roles</h3>
       <p id="roles-donut-chart"></p>
-      ${!hasAnyRoles ? html`<p class="empty-note">No roles assigned yet</p>` : ``}
+      ${!hasAnyRoles ? html`<p class="empty-note">No roles</p>` : ``}
     </div>
   </a>
 
@@ -1414,7 +1420,7 @@ createCombinedTaskTable()
     <div class="stat-card">
       <h3>Tasks Completed</h3>
       <p id="completed-tasks-chart"></p>
-      ${totalTasks === 0 ? html`<p class="empty-note">No tasks yet</p>` : ``}
+      ${totalTasks === 0 ? html`<p class="empty-note">No tasks</p>` : ``}
     </div>
   </a>
 
@@ -1422,7 +1428,7 @@ createCombinedTaskTable()
     <div class="stat-card">
       <h3>Forms Submitted</h3>
       <p id="completed-forms-chart"></p>
-      ${totalForms === 0 ? html`<p class="empty-note">No forms submitted yet</p>` : ``}
+      ${totalForms === 0 ? html`<p class="empty-note">No forms</p>` : ``}
     </div>
   </a>
 
@@ -1504,5 +1510,6 @@ createCombinedTaskTable()
   font-size: 1rem !important;
   opacity: 0.7;
   margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 </style>
