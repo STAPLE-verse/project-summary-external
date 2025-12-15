@@ -694,22 +694,27 @@ const rolesByIndividual = projectMembersDataFrame.map((individual) => {
 
 ```js make-donuts-roles-individuals
 rolesByIndividual.forEach((member) => {
-  // Data for the donut chart
+  // Exclude placeholder roles like "No Roles"
+  const validRoles = member.roles.filter(
+    (role) => role.name && role.name !== "No Roles" && role.count > 0
+  )
+
   const data = {
-    values: member.roles.map((role) => role.count),
-    labels: member.roles.map((role) => role.name),
+    values: validRoles.map((role) => role.count),
+    labels: validRoles.map((role) => role.name),
     colors: d3.schemeCategory10,
   }
 
-  // Calculate completion percentages for tasks and forms
-  const tasksPercentComplete = (
-    (member.numberOfTasksCompleted / member.numberOfTasks) *
-    100
-  ).toFixed(1)
-  const formsPercentComplete = (
-    (member.numberOfMetadataForms / member.allMetaDataForms) *
-    100
-  ).toFixed(1)
+  const hasRoles = data.values.length > 0
+
+  // Calculate completion percentages for tasks and forms (NaN-safe)
+  const tasksPercentComplete = member.numberOfTasks
+    ? ((member.numberOfTasksCompleted / member.numberOfTasks) * 100).toFixed(1)
+    : null
+
+  const formsPercentComplete = member.allMetaDataForms
+    ? ((member.numberOfMetadataForms / member.allMetaDataForms) * 100).toFixed(1)
+    : null
 
   // Create the card container
   const card = document.createElement("div")
@@ -722,18 +727,27 @@ rolesByIndividual.forEach((member) => {
 
   // Create a container for the donut chart
   const containerId = `member-role-chart-${member.projectMemberId}`
-  const chartDiv = document.createElement("div")
-  chartDiv.id = containerId
-  card.appendChild(chartDiv)
+  let chartDiv = null
+  if (hasRoles) {
+    chartDiv = document.createElement("div")
+    chartDiv.id = containerId
+    card.appendChild(chartDiv)
+  }
 
-  // Add progress bars for tasks and forms
+  // Add progress bars for tasks and forms (only if denominator exists)
   const progressBars = `
-    <div class="progress-container">
-      <div class="progress-bar" style="width: ${tasksPercentComplete}%; background-color: ${themeColors.primary3};" title="Tasks: ${tasksPercentComplete}% Completed"></div>
-    </div>
-    <div class="progress-container">
-      <div class="progress-bar" style="width: ${formsPercentComplete}%; background-color: ${themeColors.primary4};" title="Forms: ${formsPercentComplete}% Submitted"></div>
-    </div>
+    ${tasksPercentComplete !== null ? `
+      <div class="progress-container">
+        <div class="progress-bar"
+             style="width: ${tasksPercentComplete}%; background-color: ${themeColors.primary3};"
+             title="Tasks: ${tasksPercentComplete}% Completed"></div>
+      </div>` : ``}
+    ${formsPercentComplete !== null ? `
+      <div class="progress-container">
+        <div class="progress-bar"
+             style="width: ${formsPercentComplete}%; background-color: ${themeColors.primary4};"
+             title="Forms: ${formsPercentComplete}% Submitted"></div>
+      </div>` : ``}
   `
   card.innerHTML += progressBars // Append progress bars to the card
 
@@ -741,7 +755,9 @@ rolesByIndividual.forEach((member) => {
   const memberRoleChartContainer = document.getElementById("members-section")
   if (memberRoleChartContainer) {
     memberRoleChartContainer.appendChild(card)
-    createDonutChart(data, containerId, `${member.name}`)
+    if (hasRoles) {
+      createDonutChart(data, containerId, `${member.name}`)
+    }
   } else {
     console.error("Main container for member charts not found!")
   }
@@ -777,9 +793,14 @@ const rolesByTeam = teamsDataArray.map((team) => {
   ).length
   const totalForms = teamTaskLogs.filter((log) => log.taskLogMetadata !== "No Metadata").length
 
-  // Calculate percentages
-  const tasksPercentComplete = ((numberOfTasksCompleted / totalTasks) * 100).toFixed(1)
-  const formsPercentComplete = ((numberOfMetadataForms / totalForms) * 100).toFixed(1)
+  // Calculate percentages (NaN-safe)
+  const tasksPercentComplete = totalTasks
+    ? ((numberOfTasksCompleted / totalTasks) * 100).toFixed(1)
+    : null
+
+  const formsPercentComplete = totalForms
+    ? ((numberOfMetadataForms / totalForms) * 100).toFixed(1)
+    : null
 
   // Return the team data with all required columns
   return {
@@ -793,8 +814,8 @@ const rolesByTeam = teamsDataArray.map((team) => {
     totalTasks: totalTasks || 0,
     numberOfMetadataForms: numberOfMetadataForms || 0,
     totalForms: totalForms || 0,
-    tasksPercentComplete: tasksPercentComplete || 0,
-    formsPercentComplete: formsPercentComplete || 0,
+    tasksPercentComplete,
+    formsPercentComplete,
   }
 })
 
@@ -803,11 +824,18 @@ console.log(rolesByTeam)
 
 ```js make-donuts-teams
 rolesByTeam.forEach((team) => {
+  // Exclude placeholder roles like "No Roles"
+  const validRoles = team.roles.filter(
+    (role) => role.name && role.name !== "No Roles" && role.count > 0
+  )
+
   const data = {
-    values: team.roles.map((role) => role.count),
-    labels: team.roles.map((role) => role.name),
+    values: validRoles.map((role) => role.count),
+    labels: validRoles.map((role) => role.name),
     colors: d3.schemeCategory10,
   }
+
+  const hasRoles = data.values.length > 0
 
   // Create the card container
   const card = document.createElement("div")
@@ -820,22 +848,27 @@ rolesByTeam.forEach((team) => {
 
   // Create a container for the donut chart
   const containerId = `team-role-chart-${team.teamId}`
-  const chartDiv = document.createElement("div")
-  chartDiv.id = containerId
-  card.appendChild(chartDiv)
+  let chartDiv = null
+  if (hasRoles) {
+    chartDiv = document.createElement("div")
+    chartDiv.id = containerId
+    card.appendChild(chartDiv)
+  }
 
-  // Add progress bars for tasks and forms
+  // Add progress bars for tasks and forms (only if denominator exists)
   const progressBars = `
-    <div class="progress-container">
-      <div class="progress-bar" 
-           style="width: ${team.tasksPercentComplete}%; background-color: ${themeColors.primary3};" 
-           title="Tasks: ${team.tasksPercentComplete}% Completed"></div>
-    </div>
-    <div class="progress-container">
-      <div class="progress-bar" 
-           style="width: ${team.formsPercentComplete}%; background-color: ${themeColors.primary4};" 
-           title="Forms: ${team.formsPercentComplete}% Submitted"></div>
-    </div>
+    ${team.tasksPercentComplete !== null ? `
+      <div class="progress-container">
+        <div class="progress-bar"
+             style="width: ${team.tasksPercentComplete}%; background-color: ${themeColors.primary3};"
+             title="Tasks: ${team.tasksPercentComplete}% Completed"></div>
+      </div>` : ``}
+    ${team.formsPercentComplete !== null ? `
+      <div class="progress-container">
+        <div class="progress-bar"
+             style="width: ${team.formsPercentComplete}%; background-color: ${themeColors.primary4};"
+             title="Forms: ${team.formsPercentComplete}% Submitted"></div>
+      </div>` : ``}
   `
   card.innerHTML += progressBars // Append progress bars to the card
 
@@ -843,7 +876,9 @@ rolesByTeam.forEach((team) => {
   const teamRoleChartContainer = document.getElementById("teams-section")
   if (teamRoleChartContainer) {
     teamRoleChartContainer.appendChild(card)
-    createDonutChart(data, containerId, `${team.teamName}`)
+    if (hasRoles) {
+      createDonutChart(data, containerId, `${team.teamName}`)
+    }
   } else {
     console.error("Main container for team charts not found!")
   }
