@@ -426,7 +426,9 @@ const layout = {
 }
 
 // Render the chart
-Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
+if (totalTasks > 0) {
+  Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
+}
 ```
 
 ```js overall-form-statistics
@@ -477,7 +479,9 @@ const layout = {
 }
 
 // Render the chart
-Plotly.newPlot("completed-forms-chart", dataCompletedForms, layout)
+if (totalForms > 0) {
+  Plotly.newPlot("completed-forms-chart", dataCompletedForms, layout)
+}
 ```
 
 ```js overall-role-statistics
@@ -539,8 +543,12 @@ const roleLayout = {
   paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent paper background
 }
 
-// Render the donut chart
-Plotly.newPlot("roles-donut-chart", roleData, roleLayout)
+// Guard donut chart render: only render donut if there is any data
+const hasAnyRoles = roleValues.some((v) => v > 0)
+
+if (hasAnyRoles) {
+  Plotly.newPlot("roles-donut-chart", roleData, roleLayout)
+}
 ```
 
 ```js create-role-table
@@ -706,6 +714,7 @@ rolesByIndividual.forEach((member) => {
   }
 
   const hasRoles = data.values.length > 0
+  const emptyRolesNote = "No roles assigned yet"
 
   // Calculate completion percentages for tasks and forms (NaN-safe)
   const tasksPercentComplete = member.numberOfTasks
@@ -725,13 +734,18 @@ rolesByIndividual.forEach((member) => {
   title.textContent = member.name
   card.appendChild(title)
 
-  // Create a container for the donut chart
+  // Create a container for the donut chart or empty note
   const containerId = `member-role-chart-${member.projectMemberId}`
   let chartDiv = null
   if (hasRoles) {
     chartDiv = document.createElement("div")
     chartDiv.id = containerId
     card.appendChild(chartDiv)
+  } else {
+    const note = document.createElement("p")
+    note.className = "empty-note"
+    note.textContent = emptyRolesNote
+    card.appendChild(note)
   }
 
   // Add progress bars for tasks and forms (only if denominator exists)
@@ -836,6 +850,7 @@ rolesByTeam.forEach((team) => {
   }
 
   const hasRoles = data.values.length > 0
+  const emptyRolesNote = "No roles assigned yet"
 
   // Create the card container
   const card = document.createElement("div")
@@ -846,13 +861,18 @@ rolesByTeam.forEach((team) => {
   title.textContent = team.teamName
   card.appendChild(title)
 
-  // Create a container for the donut chart
+  // Create a container for the donut chart or empty note
   const containerId = `team-role-chart-${team.teamId}`
   let chartDiv = null
   if (hasRoles) {
     chartDiv = document.createElement("div")
     chartDiv.id = containerId
     card.appendChild(chartDiv)
+  } else {
+    const note = document.createElement("p")
+    note.className = "empty-note"
+    note.textContent = emptyRolesNote
+    card.appendChild(note)
   }
 
   // Add progress bars for tasks and forms (only if denominator exists)
@@ -1386,6 +1406,7 @@ createCombinedTaskTable()
     <div class="stat-card">
       <h3>Roles</h3>
       <p id="roles-donut-chart"></p>
+      ${!hasAnyRoles ? html`<p class="empty-note">No roles assigned yet</p>` : ``}
     </div>
   </a>
 
@@ -1393,6 +1414,7 @@ createCombinedTaskTable()
     <div class="stat-card">
       <h3>Tasks Completed</h3>
       <p id="completed-tasks-chart"></p>
+      ${totalTasks === 0 ? html`<p class="empty-note">No tasks yet</p>` : ``}
     </div>
   </a>
 
@@ -1400,6 +1422,7 @@ createCombinedTaskTable()
     <div class="stat-card">
       <h3>Forms Submitted</h3>
       <p id="completed-forms-chart"></p>
+      ${totalForms === 0 ? html`<p class="empty-note">No forms submitted yet</p>` : ``}
     </div>
   </a>
 
@@ -1416,7 +1439,9 @@ createCombinedTaskTable()
   <p>This section contains the role information for each member. Click on an individual card to learn more about their contribution to the project.</p>
     <div id="members-section"></div> <!-- Placeholder for dynamic content -->
     <div id="member-details-section" class="details-container">
-      <p>Select a card to view details about the contributor or team.</p>
+      ${numberOfUniqueMembers > 0
+        ? html`<p>Select a card to view details about the contributor or team.</p>`
+        : ``}
     </div>
   </div>
 </div>
@@ -1431,7 +1456,9 @@ createCombinedTaskTable()
     <p>This section contains the role information for each team. Click on an individual card to learn more about their contribution to the project.</p>
     <div id="teams-section"></div> <!-- Placeholder for dynamic content -->
     <div id="team-details-section" class="details-container">
-      <p>Select a card to view details about the contributor or team.</p>
+      ${numberOfUniqueTeams > 0
+        ? html`<p>Select a card to view details about the contributor or team.</p>`
+        : ``}
     </div>
   </div>
 </div>
@@ -1471,3 +1498,11 @@ createCombinedTaskTable()
     <div id="combined-task-table-container"></div> <!-- Placeholder for the table -->
   </div>
 </div>
+
+<style>
+.empty-note {
+  font-size: 1rem !important;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+</style>
