@@ -175,7 +175,7 @@ const tasksDataFrame = jsonData.tasks.flatMap((task) =>
 return {filteredMembers,projectMembersDataFrame,groupMembers,groupMembersDataFrame,tasksDataFrame};
 }});
 
-define({id: "c5c3e421", inputs: ["tasksDataFrame","groupMembersDataFrame","projectMembersDataFrame"], outputs: ["tasksWithNames"], body: (tasksDataFrame,groupMembersDataFrame,projectMembersDataFrame) => {
+define({id: "255c1417", inputs: ["tasksDataFrame","groupMembersDataFrame","projectMembersDataFrame"], outputs: ["tasksWithNames"], body: (tasksDataFrame,groupMembersDataFrame,projectMembersDataFrame) => {
 const tasksWithNames = tasksDataFrame.map((task) => {
   // Find the assigned team or individual name
   const assignedName = (() => {
@@ -243,7 +243,7 @@ const tasksWithNames = tasksDataFrame.map((task) => {
   // Convert taskLogStatus to a user-friendly format
   const formattedStatus = task.taskLogStatus === "COMPLETED" ? "Completed" : "Not Completed"
 
-  const formattedTaskStatus = task.taskStatus === "COMPLETED" ? "Completed" : "Not Completed"
+  const formattedTaskStatus = task.status === "COMPLETED" ? "Completed" : "Not Completed"
 
   // Return a new object with updated values
   return {
@@ -622,7 +622,7 @@ averageCompletionTime
 <div class="observablehq observablehq--block"><!--:fba00031:--></div>
 <div class="observablehq observablehq--block"><!--:a1c265e5:--></div>
 <div class="observablehq observablehq--block"><!--:1a393a5c:--></div>
-<div class="observablehq observablehq--block"><!--:c5c3e421:--></div>
+<div class="observablehq observablehq--block"><!--:255c1417:--></div>
 <div class="observablehq observablehq--block"><!--:c89fb700:--></div>
 <div class="observablehq observablehq--block"><!--:3df900cd:--></div>
 <div class="observablehq observablehq--block"><!--:ef53a934:--></div>
@@ -663,7 +663,7 @@ averageCompletionTime
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./Contributors"><span>Contributors</span></a><a rel="next" href="./Form_Data"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-11-14T11:32:09">Nov 14, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-12-14T19:21:12">Dec 14, 2025</a>.</div>
 </footer>
 </div>
 </body>
