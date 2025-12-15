@@ -204,7 +204,7 @@ const tasksWithNames = tasksDataFrame.map((task) => {
   // Convert taskLogStatus to a user-friendly format
   const formattedStatus = task.taskLogStatus === "COMPLETED" ? "Completed" : "Not Completed"
 
-  const formattedTaskStatus = task.taskStatus === "COMPLETED" ? "Completed" : "Not Completed"
+  const formattedTaskStatus = task.status === "COMPLETED" ? "Completed" : "Not Completed"
 
   // Return a new object with updated values
   return {
