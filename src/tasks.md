@@ -279,8 +279,15 @@ const layout = {
   paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent chart area background
 }
 
-// Render the chart
-Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
+// Render the chart or empty state note
+if (totalTasks > 0) {
+  Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
+} else {
+  const el = document.getElementById("completed-tasks-chart")
+  if (el) {
+    el.innerHTML = '<p class="empty-note">No tasks created yet</p>'
+  }
+}
 ```
 
 ```js tasklog-statistics
@@ -345,8 +352,15 @@ const layout = {
   paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent chart area background
 }
 
-// Render the chart
-Plotly.newPlot("completed-tasklogs-chart", dataCompletedTasks, layout)
+// Render the chart or empty state note
+if (totalTaskLogs > 0) {
+  Plotly.newPlot("completed-tasklogs-chart", dataCompletedTasks, layout)
+} else {
+  const el = document.getElementById("completed-tasklogs-chart")
+  if (el) {
+    el.innerHTML = '<p class="empty-note">No task logs yet</p>'
+  }
+}
 ```
 
 ```js avg-time-complete
@@ -552,10 +566,12 @@ createTaskDropdownAndDataTable("task-dropdown-container", "task-datatable-contai
       <p id="completed-tasklogs-chart"></p>
     </div>
     <div class="stat-card">
-        <h4>Average Completion Time</h4>
-        <p id="stat-number-3">${averageCompletionTime} Days</p>
-        <i class="fas fa-clock" id="stat-number-3" aria-hidden="true"></i>
-      </div>
+      <h4>Average Completion Time</h4>
+      ${completedCount > 0
+        ? html`<p id="stat-number-3">${averageCompletionTime} Days</p>
+                <i class="fas fa-clock" aria-hidden="true"></i>`
+        : html`<p class="empty-note">No completed tasks yet</p>`}
+    </div>
   </div>
 </div>
 
@@ -571,3 +587,12 @@ createTaskDropdownAndDataTable("task-dropdown-container", "task-datatable-contai
     <div id="task-datatable-container" class="datatable-container"></div>
   </div>
 </div>
+
+<style>
+.empty-note {
+  font-size: 1rem !important;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+</style>
