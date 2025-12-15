@@ -429,7 +429,7 @@ const numberOfUniqueTeams = teamsWithTaskData.size
 return {uniqueMemberNames,numberOfUniqueMembers,uniqueTeamNames,numberOfUniqueTeams};
 }});
 
-define({id: "ca81b0a6", inputs: ["latestTaskLogs","themeColors","Plotly"], outputs: ["totalTasks","completedTasks","completedPercentage","dataCompletedTasks","layout"], body: (latestTaskLogs,themeColors,Plotly) => {
+define({id: "48add8e7", inputs: ["latestTaskLogs","themeColors","Plotly"], outputs: ["totalTasks","completedTasks","completedPercentage","dataCompletedTasks","layout"], body: (latestTaskLogs,themeColors,Plotly) => {
 // Count the total number of rows
 const totalTasks = latestTaskLogs.length
 
@@ -476,11 +476,13 @@ const layout = {
 }
 
 // Render the chart
-Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
+if (totalTasks > 0) {
+  Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
+}
 return {totalTasks,completedTasks,completedPercentage,dataCompletedTasks,layout};
 }});
 
-define({id: "920a7114", inputs: ["latestTaskLogs","themeColors","Plotly"], outputs: ["totalForms","completedForms","completedFormPercentage","dataCompletedForms","layout"], body: (latestTaskLogs,themeColors,Plotly) => {
+define({id: "715975d4", inputs: ["latestTaskLogs","themeColors","Plotly"], outputs: ["totalForms","completedForms","completedFormPercentage","dataCompletedForms","layout"], body: (latestTaskLogs,themeColors,Plotly) => {
 // Count the total number of form tasks
 const totalForms = latestTaskLogs.filter((log) => log.taskLogMetadata !== "No Metadata").length
 
@@ -528,11 +530,13 @@ const layout = {
 }
 
 // Render the chart
-Plotly.newPlot("completed-forms-chart", dataCompletedForms, layout)
+if (totalForms > 0) {
+  Plotly.newPlot("completed-forms-chart", dataCompletedForms, layout)
+}
 return {totalForms,completedForms,completedFormPercentage,dataCompletedForms,layout};
 }});
 
-define({id: "562127d1", inputs: ["latestTaskLogs","projectMembersDataFrame","rolesDataFrame","d3","Plotly"], outputs: ["roleCountsFromTasks","roleCountsFromMembers","updatedRolesDataFrame","roleLabels","roleValues","roleData","roleLayout"], body: (latestTaskLogs,projectMembersDataFrame,rolesDataFrame,d3,Plotly) => {
+define({id: "773f896f", inputs: ["latestTaskLogs","projectMembersDataFrame","rolesDataFrame","d3","Plotly"], outputs: ["roleCountsFromTasks","roleCountsFromMembers","updatedRolesDataFrame","roleLabels","roleValues","roleData","roleLayout","hasAnyRoles"], body: (latestTaskLogs,projectMembersDataFrame,rolesDataFrame,d3,Plotly) => {
 // Step 1: Count roles in latestTaskLogs
 const roleCountsFromTasks = latestTaskLogs.reduce((acc, log) => {
   log.roles.forEach((role) => {
@@ -591,9 +595,13 @@ const roleLayout = {
   paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent paper background
 }
 
-// Render the donut chart
-Plotly.newPlot("roles-donut-chart", roleData, roleLayout)
-return {roleCountsFromTasks,roleCountsFromMembers,updatedRolesDataFrame,roleLabels,roleValues,roleData,roleLayout};
+// Guard donut chart render: only render donut if there is any data
+const hasAnyRoles = roleValues.some((v) => v > 0)
+
+if (hasAnyRoles) {
+  Plotly.newPlot("roles-donut-chart", roleData, roleLayout)
+}
+return {roleCountsFromTasks,roleCountsFromMembers,updatedRolesDataFrame,roleLabels,roleValues,roleData,roleLayout,hasAnyRoles};
 }});
 
 define({id: "b55d9207", inputs: ["$","updatedRolesDataFrame","renderMarkdown"], outputs: ["createRoleTable"], body: ($,updatedRolesDataFrame,renderMarkdown) => {
@@ -747,7 +755,7 @@ const rolesByIndividual = projectMembersDataFrame.map((individual) => {
 return {rolesByIndividual};
 }});
 
-define({id: "35c1ec7d", inputs: ["rolesByIndividual","d3","themeColors","createDonutChart","showDetails"], body: (rolesByIndividual,d3,themeColors,createDonutChart,showDetails) => {
+define({id: "6943ea66", inputs: ["rolesByIndividual","d3","themeColors","createDonutChart","showDetails"], body: (rolesByIndividual,d3,themeColors,createDonutChart,showDetails) => {
 rolesByIndividual.forEach((member) => {
   // Exclude placeholder roles like "No Roles"
   const validRoles = member.roles.filter(
@@ -761,6 +769,7 @@ rolesByIndividual.forEach((member) => {
   }
 
   const hasRoles = data.values.length > 0
+  const emptyRolesNote = "No roles"
 
   // Calculate completion percentages for tasks and forms (NaN-safe)
   const tasksPercentComplete = member.numberOfTasks
@@ -780,29 +789,37 @@ rolesByIndividual.forEach((member) => {
   title.textContent = member.name
   card.appendChild(title)
 
-  // Create a container for the donut chart
+  // Create a container for the donut chart or empty note
   const containerId = `member-role-chart-${member.projectMemberId}`
   let chartDiv = null
   if (hasRoles) {
     chartDiv = document.createElement("div")
     chartDiv.id = containerId
     card.appendChild(chartDiv)
+  } else {
+    const note = document.createElement("p")
+    note.className = "empty-note"
+    note.textContent = emptyRolesNote
+    card.appendChild(note)
   }
 
-  // Add progress bars for tasks and forms (only if denominator exists)
+  // Add progress bars for tasks and forms (with empty state notes if missing)
   const progressBars = `
     ${tasksPercentComplete !== null ? `
       <div class="progress-container">
         <div class="progress-bar"
              style="width: ${tasksPercentComplete}%; background-color: ${themeColors.primary3};"
              title="Tasks: ${tasksPercentComplete}% Completed"></div>
-      </div>` : ``}
+      </div>`
+      : `<p class="empty-note">No tasks</p>`}
+
     ${formsPercentComplete !== null ? `
       <div class="progress-container">
         <div class="progress-bar"
              style="width: ${formsPercentComplete}%; background-color: ${themeColors.primary4};"
              title="Forms: ${formsPercentComplete}% Submitted"></div>
-      </div>` : ``}
+      </div>`
+      : `<p class="empty-note">No forms</p>`}
   `
   card.innerHTML += progressBars // Append progress bars to the card
 
@@ -878,7 +895,7 @@ console.log(rolesByTeam)
 return {rolesByTeam};
 }});
 
-define({id: "6414e14a", inputs: ["rolesByTeam","d3","themeColors","createDonutChart","showDetails"], body: (rolesByTeam,d3,themeColors,createDonutChart,showDetails) => {
+define({id: "0330431f", inputs: ["rolesByTeam","d3","themeColors","createDonutChart","showDetails"], body: (rolesByTeam,d3,themeColors,createDonutChart,showDetails) => {
 rolesByTeam.forEach((team) => {
   // Exclude placeholder roles like "No Roles"
   const validRoles = team.roles.filter(
@@ -892,6 +909,7 @@ rolesByTeam.forEach((team) => {
   }
 
   const hasRoles = data.values.length > 0
+  const emptyRolesNote = "No roles"
 
   // Create the card container
   const card = document.createElement("div")
@@ -902,29 +920,37 @@ rolesByTeam.forEach((team) => {
   title.textContent = team.teamName
   card.appendChild(title)
 
-  // Create a container for the donut chart
+  // Create a container for the donut chart or empty note
   const containerId = `team-role-chart-${team.teamId}`
   let chartDiv = null
   if (hasRoles) {
     chartDiv = document.createElement("div")
     chartDiv.id = containerId
     card.appendChild(chartDiv)
+  } else {
+    const note = document.createElement("p")
+    note.className = "empty-note"
+    note.textContent = emptyRolesNote
+    card.appendChild(note)
   }
 
-  // Add progress bars for tasks and forms (only if denominator exists)
+  // Add progress bars for tasks and forms (with empty state notes if missing)
   const progressBars = `
     ${team.tasksPercentComplete !== null ? `
       <div class="progress-container">
         <div class="progress-bar"
              style="width: ${team.tasksPercentComplete}%; background-color: ${themeColors.primary3};"
              title="Tasks: ${team.tasksPercentComplete}% Completed"></div>
-      </div>` : ``}
+      </div>`
+      : `<p class="empty-note">No tasks</p>`}
+
     ${team.formsPercentComplete !== null ? `
       <div class="progress-container">
         <div class="progress-bar"
              style="width: ${team.formsPercentComplete}%; background-color: ${themeColors.primary4};"
              title="Forms: ${team.formsPercentComplete}% Submitted"></div>
-      </div>` : ``}
+      </div>`
+      : `<p class="empty-note">No forms</p>`}
   `
   card.innerHTML += progressBars // Append progress bars to the card
 
@@ -1431,6 +1457,40 @@ numberOfUniqueTeams
 ))
 }});
 
+define({id: "aa4d517d", mode: "inline", inputs: ["hasAnyRoles","html","display"], body: async (hasAnyRoles,html,display) => {
+display(await(
+!hasAnyRoles ? html`<p class="empty-note">No roles</p>` : ``
+))
+}});
+
+define({id: "5d777ef7", mode: "inline", inputs: ["totalTasks","html","display"], body: async (totalTasks,html,display) => {
+display(await(
+totalTasks === 0 ? html`<p class="empty-note">No tasks</p>` : ``
+))
+}});
+
+define({id: "47b36cc0", mode: "inline", inputs: ["totalForms","html","display"], body: async (totalForms,html,display) => {
+display(await(
+totalForms === 0 ? html`<p class="empty-note">No forms</p>` : ``
+))
+}});
+
+define({id: "fe013cc3", mode: "inline", inputs: ["numberOfUniqueMembers","html","display"], body: async (numberOfUniqueMembers,html,display) => {
+display(await(
+numberOfUniqueMembers > 0
+        ? html`<p>Select a card to view details about the contributor or team.</p>`
+        : ``
+))
+}});
+
+define({id: "ed249234", mode: "inline", inputs: ["numberOfUniqueTeams","html","display"], body: async (numberOfUniqueTeams,html,display) => {
+display(await(
+numberOfUniqueTeams > 0
+        ? html`<p>Select a card to view details about the contributor or team.</p>`
+        : ``
+))
+}});
+
 </script>
 </head>
 <body>
@@ -1472,14 +1532,14 @@ numberOfUniqueTeams
 <div class="observablehq observablehq--block"><!--:b52f6c54:--></div>
 <div class="observablehq observablehq--block"><!--:b984da08:--></div>
 <div class="observablehq observablehq--block"><!--:8619e3be:--></div>
-<div class="observablehq observablehq--block"><!--:ca81b0a6:--></div>
-<div class="observablehq observablehq--block"><!--:920a7114:--></div>
-<div class="observablehq observablehq--block"><!--:562127d1:--></div>
+<div class="observablehq observablehq--block"><!--:48add8e7:--></div>
+<div class="observablehq observablehq--block"><!--:715975d4:--></div>
+<div class="observablehq observablehq--block"><!--:773f896f:--></div>
 <div class="observablehq observablehq--block"><!--:b55d9207:--></div>
 <div class="observablehq observablehq--block"><!--:8aa2be9a:--></div>
-<div class="observablehq observablehq--block"><!--:35c1ec7d:--></div>
+<div class="observablehq observablehq--block"><!--:6943ea66:--></div>
 <div class="observablehq observablehq--block"><!--:55966b98:--></div>
-<div class="observablehq observablehq--block"><!--:6414e14a:--></div>
+<div class="observablehq observablehq--block"><!--:0330431f:--></div>
 <div class="observablehq observablehq--block"><!--:9cb12c6d:--></div>
 <div class="observablehq observablehq--block"><!--:c5c3e421:--></div>
 <div class="observablehq observablehq--block"><!--:7489437c:--></div>
@@ -1510,18 +1570,21 @@ numberOfUniqueTeams
     <div class="stat-card">
       <h3>Roles</h3>
       <p id="roles-donut-chart"></p>
+      <observablehq-loading></observablehq-loading><!--:aa4d517d:-->
     </div>
   </a>
   <a href="./Tasks" class="card-link">
     <div class="stat-card">
       <h3>Tasks Completed</h3>
       <p id="completed-tasks-chart"></p>
+      <observablehq-loading></observablehq-loading><!--:5d777ef7:-->
     </div>
   </a>
   <a href="./Form_Data" class="card-link">
     <div class="stat-card">
       <h3>Forms Submitted</h3>
       <p id="completed-forms-chart"></p>
+      <observablehq-loading></observablehq-loading><!--:47b36cc0:-->
     </div>
   </a>
   </div>
@@ -1536,7 +1599,7 @@ numberOfUniqueTeams
   <p>This section contains the role information for each member. Click on an individual card to learn more about their contribution to the project.</p>
     <div id="members-section"></div> <!-- Placeholder for dynamic content -->
     <div id="member-details-section" class="details-container">
-      <p>Select a card to view details about the contributor or team.</p>
+      <observablehq-loading></observablehq-loading><!--:fe013cc3:-->
     </div>
   </div>
 </div>
@@ -1550,7 +1613,7 @@ numberOfUniqueTeams
     <p>This section contains the role information for each team. Click on an individual card to learn more about their contribution to the project.</p>
     <div id="teams-section"></div> <!-- Placeholder for dynamic content -->
     <div id="team-details-section" class="details-container">
-      <p>Select a card to view details about the contributor or team.</p>
+      <observablehq-loading></observablehq-loading><!--:ed249234:-->
     </div>
   </div>
 </div>
@@ -1587,10 +1650,17 @@ numberOfUniqueTeams
     <div id="combined-task-table-container"></div> <!-- Placeholder for the table -->
   </div>
 </div>
-</main>
+<style>
+.empty-note {
+  font-size: 1rem !important;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+</style></main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./"><span>Project Summary</span></a><a rel="next" href="./Tasks"><span>Tasks</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-12-14T19:21:12">Dec 14, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-12-14T20:38:48">Dec 14, 2025</a>.</div>
 </footer>
 </div>
 </body>

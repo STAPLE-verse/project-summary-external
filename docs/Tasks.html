@@ -259,7 +259,7 @@ const tasksWithNames = tasksDataFrame.map((task) => {
 return {tasksWithNames};
 }});
 
-define({id: "c89fb700", inputs: ["tasksDataFrame","themeColors","Plotly"], outputs: ["latestTasks","totalTasks","completedTasks","completedPercentage","dataCompletedTasks","layout"], body: (tasksDataFrame,themeColors,Plotly) => {
+define({id: "5c02019a", inputs: ["tasksDataFrame","themeColors","Plotly"], outputs: ["latestTasks","totalTasks","completedTasks","completedPercentage","dataCompletedTasks","layout"], body: (tasksDataFrame,themeColors,Plotly) => {
 // Step 1: Deduplicate tasks by taskId, keeping the latest log for each task
 const latestTasks = Array.from(
   tasksDataFrame
@@ -319,12 +319,19 @@ const layout = {
   paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent chart area background
 }
 
-// Render the chart
-Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
+// Render the chart or empty state note
+if (totalTasks > 0) {
+  Plotly.newPlot("completed-tasks-chart", dataCompletedTasks, layout)
+} else {
+  const el = document.getElementById("completed-tasks-chart")
+  if (el) {
+    el.innerHTML = '<p class="empty-note">No tasks created yet</p>'
+  }
+}
 return {latestTasks,totalTasks,completedTasks,completedPercentage,dataCompletedTasks,layout};
 }});
 
-define({id: "3df900cd", inputs: ["tasksDataFrame","themeColors","Plotly"], outputs: ["latestTaskLogs","totalTaskLogs","completedTaskLogs","completedPercentageLogs","dataCompletedTasks","layout"], body: (tasksDataFrame,themeColors,Plotly) => {
+define({id: "a56c3ace", inputs: ["tasksDataFrame","themeColors","Plotly"], outputs: ["latestTaskLogs","totalTaskLogs","completedTaskLogs","completedPercentageLogs","dataCompletedTasks","layout"], body: (tasksDataFrame,themeColors,Plotly) => {
 const latestTaskLogs = Array.from(
   tasksDataFrame
     .reduce((map, log) => {
@@ -386,8 +393,15 @@ const layout = {
   paper_bgcolor: "rgba(0, 0, 0, 0)", // Transparent chart area background
 }
 
-// Render the chart
-Plotly.newPlot("completed-tasklogs-chart", dataCompletedTasks, layout)
+// Render the chart or empty state note
+if (totalTaskLogs > 0) {
+  Plotly.newPlot("completed-tasklogs-chart", dataCompletedTasks, layout)
+} else {
+  const el = document.getElementById("completed-tasklogs-chart")
+  if (el) {
+    el.innerHTML = '<p class="empty-note">No task logs yet</p>'
+  }
+}
 return {latestTaskLogs,totalTaskLogs,completedTaskLogs,completedPercentageLogs,dataCompletedTasks,layout};
 }});
 
@@ -580,9 +594,12 @@ createTaskDropdownAndDataTable("task-dropdown-container", "task-datatable-contai
 return {createTaskDropdownAndDataTable,displayTaskDataTable};
 }});
 
-define({id: "2931778b", mode: "inline", inputs: ["averageCompletionTime","display"], body: async (averageCompletionTime,display) => {
+define({id: "c3593349", mode: "inline", inputs: ["completedCount","html","averageCompletionTime","display"], body: async (completedCount,html,averageCompletionTime,display) => {
 display(await(
-averageCompletionTime
+completedCount > 0
+        ? html`<p id="stat-number-3">${averageCompletionTime} Days</p>
+                <i class="fas fa-clock" aria-hidden="true"></i>`
+        : html`<p class="empty-note">No completed tasks yet</p>`
 ))
 }});
 
@@ -623,8 +640,8 @@ averageCompletionTime
 <div class="observablehq observablehq--block"><!--:a1c265e5:--></div>
 <div class="observablehq observablehq--block"><!--:1a393a5c:--></div>
 <div class="observablehq observablehq--block"><!--:255c1417:--></div>
-<div class="observablehq observablehq--block"><!--:c89fb700:--></div>
-<div class="observablehq observablehq--block"><!--:3df900cd:--></div>
+<div class="observablehq observablehq--block"><!--:5c02019a:--></div>
+<div class="observablehq observablehq--block"><!--:a56c3ace:--></div>
 <div class="observablehq observablehq--block"><!--:ef53a934:--></div>
 <div class="observablehq observablehq--block"><!--:ff3c3cdd:--></div>
 <div class="card">
@@ -642,10 +659,9 @@ averageCompletionTime
       <p id="completed-tasklogs-chart"></p>
     </div>
     <div class="stat-card">
-        <h4>Average Completion Time</h4>
-        <p id="stat-number-3"><observablehq-loading></observablehq-loading><!--:2931778b:--> Days</p>
-        <i class="fas fa-clock" id="stat-number-3" aria-hidden="true"></i>
-      </div>
+      <h4>Average Completion Time</h4>
+      <observablehq-loading></observablehq-loading><!--:c3593349:-->
+    </div>
   </div>
 </div>
 <div class="custom-collapse">
@@ -660,10 +676,17 @@ averageCompletionTime
     <div id="task-datatable-container" class="datatable-container"></div>
   </div>
 </div>
-</main>
+<style>
+.empty-note {
+  font-size: 1rem !important;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+</style></main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./Contributors"><span>Contributors</span></a><a rel="next" href="./Form_Data"><span>Form Data</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-12-14T19:21:12">Dec 14, 2025</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-12-14T20:38:48">Dec 14, 2025</a>.</div>
 </footer>
 </div>
 </body>
