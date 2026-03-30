@@ -48,7 +48,7 @@ ${
   <div class="card">
 
   <div class = "statistics-container">
-  <a href="https://app.staple.science">
+  <a href="https://app.staplescience.com">
   <picture>
     <source
       srcSet="img/logo_white_big.png"
@@ -60,7 +60,7 @@ ${
   </a>
   </div>
 
-  This project summary was created using the STAPLE app. STAPLE empowers researchers to manage their projects with clarity, ensuring open and transparent documentation throughout the project lifecycle. By providing tools for seamless data and metadata tracking, STAPLE supports the principles of open science and fosters collaboration across disciplines. Learn more at <a href="https://staple.science">https://staple.science</a>.
+  This project summary was created using the STAPLE app. STAPLE empowers researchers to manage their projects with clarity, ensuring open and transparent documentation throughout the project lifecycle. By providing tools for seamless data and metadata tracking, STAPLE supports the principles of open science and fosters collaboration across disciplines. Learn more at <a href="https://staplescience.com">https://staplescience.com</a>.
   </div>
 </div>
 

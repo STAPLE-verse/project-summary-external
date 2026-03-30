@@ -1,223 +1,454 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="generator" content="Observable Framework v1.13.0">
-<title>Project Summary</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
-<link rel="preload" as="style" href="./_observablehq/theme-air,deep-space.9d6d3ba1.css">
-<link rel="preload" as="style" href="./_observablehq/stdlib/inputs.ea9fd553.css">
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
-<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,deep-space.9d6d3ba1.css">
-<link rel="stylesheet" type="text/css" href="./_observablehq/stdlib/inputs.ea9fd553.css">
-<link rel="modulepreload" href="./_observablehq/client.65fe86b7.js">
-<link rel="modulepreload" href="./_observablehq/runtime.9393ab6d.js">
-<link rel="modulepreload" href="./_observablehq/stdlib.95bfbf7e.js">
-<link rel="modulepreload" href="./_npm/marked@16.2.1/12e5ff21.js">
-<link rel="modulepreload" href="./_npm/htl@0.3.1/063eb405.js">
-<link rel="modulepreload" href="./_observablehq/stdlib/inputs.d397b6a8.js">
-<link rel="modulepreload" href="./_npm/isoformat@0.2.1/c68fbd73.js">
-<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
-<script type="module">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <meta name="generator" content="Observable Framework v1.13.0" />
+    <title>Project Summary</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="style"
+      href="./_observablehq/theme-air,deep-space.9d6d3ba1.css"
+    />
+    <link
+      rel="preload"
+      as="style"
+      href="./_observablehq/stdlib/inputs.ea9fd553.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap"
+      crossorigin
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="./_observablehq/theme-air,deep-space.9d6d3ba1.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="./_observablehq/stdlib/inputs.ea9fd553.css"
+    />
+    <link rel="modulepreload" href="./_observablehq/client.65fe86b7.js" />
+    <link rel="modulepreload" href="./_observablehq/runtime.9393ab6d.js" />
+    <link rel="modulepreload" href="./_observablehq/stdlib.95bfbf7e.js" />
+    <link rel="modulepreload" href="./_npm/marked@16.2.1/12e5ff21.js" />
+    <link rel="modulepreload" href="./_npm/htl@0.3.1/063eb405.js" />
+    <link
+      rel="modulepreload"
+      href="./_observablehq/stdlib/inputs.d397b6a8.js"
+    />
+    <link rel="modulepreload" href="./_npm/isoformat@0.2.1/c68fbd73.js" />
+    <link
+      rel="icon"
+      href="./_file/observable.1af93621.png"
+      type="image/png"
+      sizes="32x32"
+    />
+    <script type="module">
+      import { define } from "./_observablehq/client.65fe86b7.js";
 
-import {define} from "./_observablehq/client.65fe86b7.js";
+      define({
+        id: "6093ceab",
+        outputs: ["marked"],
+        body: async () => {
+          const { marked } = await import("./_npm/marked@16.2.1/12e5ff21.js");
 
-define({id: "6093ceab", outputs: ["marked"], body: async () => {
-const {marked} = await import("./_npm/marked@16.2.1/12e5ff21.js");
+          return { marked };
+        },
+      });
 
-return {marked};
-}});
+      define({
+        id: "48789c43",
+        inputs: ["localStorage", "view", "Inputs"],
+        outputs: ["jsonData", "jsonfile"],
+        body: (localStorage, view, Inputs) => {
+          let jsonData = JSON.parse(localStorage.getItem("jsonData"));
 
-define({id: "48789c43", inputs: ["localStorage","view","Inputs"], outputs: ["jsonData","jsonfile"], body: (localStorage,view,Inputs) => {
-let jsonData = JSON.parse(localStorage.getItem("jsonData"))
+          const jsonfile = view(
+            Inputs.file({
+              label: "Upload the project JSON file:",
+              accept: ".json",
+              required: true,
+            }),
+          );
+          return { jsonData, jsonfile };
+        },
+      });
 
-const jsonfile = view(Inputs.file({label: "Upload the project JSON file:", accept: ".json", required: true}));
-return {jsonData,jsonfile};
-}});
+      define({
+        id: "49e1df97",
+        inputs: ["view", "Inputs", "localStorage"],
+        outputs: ["reset"],
+        body: (view, Inputs, localStorage) => {
+          const reset = view(
+            Inputs.button("Reset", {
+              label: "Clear dashboard:",
+              reduce: () => {
+                localStorage.removeItem("jsonData");
+                // bump a version token so other pages know things changed
+                localStorage.setItem("jsonData_version", String(Date.now()));
+                // force a hard navigation to the current directory's index (avoids SPA routing)
+                window.location.assign(".");
+              },
+            }),
+          );
+          return { reset };
+        },
+      });
 
-define({id: "49e1df97", inputs: ["view","Inputs","localStorage"], outputs: ["reset"], body: (view,Inputs,localStorage) => {
-const reset = view(Inputs.button("Reset", {label: "Clear dashboard:", reduce: () => {
-  localStorage.removeItem("jsonData");
-  // bump a version token so other pages know things changed
-  localStorage.setItem("jsonData_version", String(Date.now()));
-  // force a hard navigation to the current directory's index (avoids SPA routing)
-  window.location.assign(".");
-}}));
-return {reset};
-}});
+      define({
+        id: "aa09f982",
+        inputs: ["jsonfile", "localStorage"],
+        outputs: ["jsonNew"],
+        body: async (jsonfile, localStorage) => {
+          const jsonNew = await jsonfile.json();
+          localStorage.setItem("jsonData", JSON.stringify(jsonNew));
+          window.location.reload();
+          return { jsonNew };
+        },
+      });
 
-define({id: "aa09f982", inputs: ["jsonfile","localStorage"], outputs: ["jsonNew"], body: async (jsonfile,localStorage) => {
-const jsonNew = await jsonfile.json();
-localStorage.setItem("jsonData", JSON.stringify(jsonNew));
-window.location.reload();
-return {jsonNew};
-}});
+      define({
+        id: "7e220b7b",
+        mode: "inline",
+        inputs: ["jsonData", "html", "display"],
+        body: async (jsonData, html, display) => {
+          display(
+            await (jsonData
+              ? html`
+                  <div class="hero">
+                    <h1>${jsonData.name || "Unnamed Project"}</h1>
+                  </div>
+                `
+              : ""),
+          );
+        },
+      });
 
-define({id: "7e220b7b", mode: "inline", inputs: ["jsonData","html","display"], body: async (jsonData,html,display) => {
-display(await(
-  jsonData ? html`
-    <div class="hero">
-      <h1>${jsonData.name || "Unnamed Project"}</h1>
+      define({
+        id: "0ca47443",
+        inputs: ["marked"],
+        outputs: [
+          "toProperCase",
+          "formatDate",
+          "renderMarkdownToHtml",
+          "renderMarkdownNode",
+        ],
+        body: (marked) => {
+          // Function to convert a string to Proper Case
+          const toProperCase = (str) =>
+            str.replace(
+              /\b\w+/g,
+              (word) => word.charAt(0).toUpperCase() + word.slice(1),
+            );
+
+          // Function to format dates
+          const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            return date.toLocaleString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            });
+          };
+
+          // Helper: render Markdown to HTML string via marked
+          function renderMarkdownToHtml(text) {
+            const src = text || "";
+            try {
+              return marked.parse(src);
+            } catch (e) {
+              console.error("Markdown parse error:", e);
+              return src;
+            }
+          }
+
+          // Helper: render Markdown to a DOM node (avoids html.raw)
+          function renderMarkdownNode(text) {
+            const wrapper = document.createElement("div");
+            try {
+              wrapper.innerHTML = marked.parse(text || "");
+            } catch (e) {
+              console.error("Markdown parse error:", e);
+              wrapper.textContent = text || "";
+            }
+            return wrapper;
+          }
+          return {
+            toProperCase,
+            formatDate,
+            renderMarkdownToHtml,
+            renderMarkdownNode,
+          };
+        },
+      });
+
+      define({
+        id: "7df78131",
+        inputs: ["jsonData"],
+        outputs: ["jsonBlob", "jsonUrl", "downloadLink", "linkContainer"],
+        body: (jsonData) => {
+          // Create a Blob from the JSON data
+          const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], {
+            type: "application/json",
+          });
+
+          // Generate a temporary URL for the Blob
+          const jsonUrl = URL.createObjectURL(jsonBlob);
+
+          // Create a dynamic download link
+          const downloadLink = document.createElement("a");
+          // Use the generated Blob URL
+          downloadLink.href = jsonUrl;
+          // Text for the link
+          downloadLink.textContent = "Download Data";
+          // Suggest a filename for download
+          downloadLink.download = "project_summary.json";
+
+          // Insert the link into the appropriate DOM element
+          const linkContainer = document.querySelector("#dynamic-download");
+          if (linkContainer) {
+            linkContainer.appendChild(downloadLink);
+          }
+          return { jsonBlob, jsonUrl, downloadLink, linkContainer };
+        },
+      });
+
+      define({
+        id: "9c2c8066",
+        mode: "inline",
+        inputs: [
+          "jsonData",
+          "html",
+          "formatDate",
+          "renderMarkdownNode",
+          "toProperCase",
+          "display",
+        ],
+        body: async (
+          jsonData,
+          html,
+          formatDate,
+          renderMarkdownNode,
+          toProperCase,
+          display,
+        ) => {
+          display(
+            await (jsonData
+              ? html`
+                  <div class="flex flex-row">
+                    <div class="card">
+                      <p>
+                        <b>Project Start Date:</b> ${formatDate(
+                          jsonData.createdAt,
+                        )}
+                      </p>
+                      <p>
+                        <b>Project Metadata and Settings Last Update:</b>
+                        ${formatDate(jsonData.updatedAt)}
+                      </p>
+                      <div><b>Project Description:</b></div>
+                      ${jsonData.description
+                        ? renderMarkdownNode(jsonData.description)
+                        : html`<p>No Description</p>`}
+                      <p><b>Project Metadata:</b></p>
+                      ${Object.entries(jsonData.metadata || {}).map(
+                        ([key, value]) => html`
+                          <p><strong>${toProperCase(key)}:</strong> ${value}</p>
+                        `,
+                      )}
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-3">
+                    <div class="card">
+                      <center>
+                        <a href="Contributors">Check out the contributors</a>
+                      </center>
+                    </div>
+                    <div class="card">
+                      <center><a href="Tasks">Check out the tasks</a></center>
+                    </div>
+                    <div class="card">
+                      <center>
+                        <a href="Form_Data">Check out the metadata</a>
+                      </center>
+                    </div>
+                    <div class="card">
+                      <center>
+                        <a href="Events">Check out the timeline</a>
+                      </center>
+                    </div>
+                  </div>
+                `
+              : ""),
+          );
+        },
+      });
+    </script>
+  </head>
+  <body>
+    <input
+      id="observablehq-sidebar-toggle"
+      type="checkbox"
+      title="Toggle sidebar"
+    />
+    <label
+      id="observablehq-sidebar-backdrop"
+      for="observablehq-sidebar-toggle"
+    ></label>
+    <nav id="observablehq-sidebar">
+      <ol>
+        <label
+          id="observablehq-sidebar-close"
+          for="observablehq-sidebar-toggle"
+        ></label>
+        <li class="observablehq-link observablehq-link-active">
+          <a href="./">Project Summary</a>
+        </li>
+      </ol>
+      <ol>
+        <li class="observablehq-link">
+          <a href="./Contributors">Contributors</a>
+        </li>
+        <li class="observablehq-link"><a href="./Tasks">Tasks</a></li>
+        <li class="observablehq-link"><a href="./Form_Data">Form Data</a></li>
+        <li class="observablehq-link"><a href="./Events">Events</a></li>
+      </ol>
+    </nav>
+    <script>
+      {
+        const e = document.querySelector("#observablehq-sidebar"),
+          t = document.querySelector("#observablehq-sidebar-toggle"),
+          r = sessionStorage.getItem("observablehq-sidebar");
+        r ? (t.checked = r === "true") : (t.indeterminate = !0);
+        for (const o of document.querySelectorAll(
+          "#observablehq-sidebar summary",
+        )) {
+          const s = o.parentElement;
+          switch (
+            sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)
+          ) {
+            case "true":
+              s.open = !0;
+              break;
+            case "false":
+              s.classList.contains("observablehq-section-active") ||
+                (s.open = !1);
+              break;
+          }
+        }
+        addEventListener("beforeunload", () =>
+          sessionStorage.setItem(
+            "observablehq-sidebar-scrolly",
+            `${e.scrollTop}`,
+          ),
+        );
+        const a = sessionStorage.getItem("observablehq-sidebar-scrolly");
+        a != null &&
+          ((e.style.cssText = "overflow: hidden;"),
+          (e.scrollTop = +a),
+          (e.style.cssText = ""));
+      }
+    </script>
+    <div id="observablehq-center">
+      <main id="observablehq-main" class="observablehq">
+        <div class="observablehq observablehq--block"><!--:6093ceab:--></div>
+        <link
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          rel="stylesheet"
+        />
+        <link rel="stylesheet" href="./_file/style.d05da4a1.css" />
+        <div class="card" label="Use your data">
+          <p>
+            <b
+              >To view a project summary, upload the JSON data from the project
+              below.
+            </b>
+          </p>
+          <div class="observablehq observablehq--block"><!--:48789c43:--></div>
+          <div class="observablehq observablehq--block"><!--:49e1df97:--></div>
+        </div>
+        <div class="observablehq observablehq--block"><!--:aa09f982:--></div>
+        <p>
+          <observablehq-loading></observablehq-loading
+          ><!--:7e220b7b:-->
+        </p>
+        <div class="flex flex-row">
+          <div class="card">
+            <div class="statistics-container">
+              <a
+                href="https://app.staplescience.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <picture>
+                  <source
+                    srcset="./_file/img/logo_white_big.2c934504.png"
+                    media="(prefers-color-scheme: dark)"
+                    width="200"
+                  />
+                  <img
+                    src="./_file/img/logo_black_big.ee6d5ee3.png"
+                    alt="STAPLE Logo"
+                    width="200"
+                  />
+                </picture>
+              </a>
+            </div>
+            <p>
+              This project summary was created using the STAPLE app. STAPLE
+              empowers researchers to manage their projects with clarity,
+              ensuring open and transparent documentation throughout the project
+              lifecycle. By providing tools for seamless data and metadata
+              tracking, STAPLE supports the principles of open science and
+              fosters collaboration across disciplines. Learn more at
+              <a
+                href="https://staplescience.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                >https://staplescience.com</a
+              >.
+            </p>
+          </div>
+        </div>
+        <div class="observablehq observablehq--block"><!--:0ca47443:--></div>
+        <div class="observablehq observablehq--block"><!--:7df78131:--></div>
+        <p>
+          <observablehq-loading></observablehq-loading
+          ><!--:9c2c8066:-->
+        </p>
+      </main>
+      <footer id="observablehq-footer">
+        <nav>
+          <a rel="next" href="./Contributors"><span>Contributors</span></a>
+        </nav>
+        <div>
+          Built with
+          <a
+            href="https://observablehq.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Observable</a
+          >
+          on <a title="2025-12-14T20:38:48">Dec 14, 2025</a>.
+        </div>
+      </footer>
     </div>
-    ` : "" 
-))
-}});
-
-define({id: "0ca47443", inputs: ["marked"], outputs: ["toProperCase","formatDate","renderMarkdownToHtml","renderMarkdownNode"], body: (marked) => {
-// Function to convert a string to Proper Case
-const toProperCase = (str) =>
-  str.replace(/\b\w+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
-
-// Function to format dates
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
-
-// Helper: render Markdown to HTML string via marked
-function renderMarkdownToHtml(text) {
-  const src = text || ""
-  try {
-    return marked.parse(src)
-  } catch (e) {
-    console.error("Markdown parse error:", e)
-    return src
-  }
-}
-
-// Helper: render Markdown to a DOM node (avoids html.raw)
-function renderMarkdownNode(text) {
-  const wrapper = document.createElement("div")
-  try {
-    wrapper.innerHTML = marked.parse(text || "")
-  } catch (e) {
-    console.error("Markdown parse error:", e)
-    wrapper.textContent = text || ""
-  }
-  return wrapper
-}
-return {toProperCase,formatDate,renderMarkdownToHtml,renderMarkdownNode};
-}});
-
-define({id: "7df78131", inputs: ["jsonData"], outputs: ["jsonBlob","jsonUrl","downloadLink","linkContainer"], body: (jsonData) => {
-// Create a Blob from the JSON data
-const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
-
-// Generate a temporary URL for the Blob
-const jsonUrl = URL.createObjectURL(jsonBlob);
-
-// Create a dynamic download link
-const downloadLink = document.createElement("a");
-// Use the generated Blob URL
-downloadLink.href = jsonUrl; 
-// Text for the link
-downloadLink.textContent = "Download Data";
-// Suggest a filename for download
-downloadLink.download = "project_summary.json"; 
-
-// Insert the link into the appropriate DOM element
-const linkContainer = document.querySelector("#dynamic-download");
-if (linkContainer) {
-  linkContainer.appendChild(downloadLink);
-}
-return {jsonBlob,jsonUrl,downloadLink,linkContainer};
-}});
-
-define({id: "9c2c8066", mode: "inline", inputs: ["jsonData","html","formatDate","renderMarkdownNode","toProperCase","display"], body: async (jsonData,html,formatDate,renderMarkdownNode,toProperCase,display) => {
-display(await(
-  jsonData ? html`
-    <div class="flex flex-row">
-      <div class="card">
-        <p><b>Project Start Date:</b> ${formatDate(jsonData.createdAt)}</p>
-        <p><b>Project Metadata and Settings Last Update:</b> ${formatDate(jsonData.updatedAt)}</p>
-        <div><b>Project Description:</b></div>
-        ${jsonData.description
-          ? renderMarkdownNode(jsonData.description)
-          : html`<p>No Description</p>`}
-        <p><b>Project Metadata:</b></p>
-        ${Object.entries(jsonData.metadata || {}).map(([key, value]) => html`
-                  <p><strong>${toProperCase(key)}:</strong> ${value}</p>
-                `)}
-      </div>
-    </div>
-    <div class="grid grid-cols-3">
-      <div class="card">
-        <center><a href="Contributors">Check out the contributors</a></center>
-      </div>
-      <div class="card">
-        <center><a href="Tasks">Check out the tasks</a></center>
-      </div>
-      <div class="card">
-        <center><a href="Form_Data">Check out the metadata</a></center>
-      </div>
-      <div class="card">
-        <center><a href="Events">Check out the timeline</a></center>
-      </div>
-    </div>
-  ` : ""
-))
-}});
-
-</script>
-</head>
-<body>
-<input id="observablehq-sidebar-toggle" type="checkbox" title="Toggle sidebar">
-<label id="observablehq-sidebar-backdrop" for="observablehq-sidebar-toggle"></label>
-<nav id="observablehq-sidebar">
-  <ol>
-    <label id="observablehq-sidebar-close" for="observablehq-sidebar-toggle"></label>
-    <li class="observablehq-link observablehq-link-active"><a href="./">Project Summary</a></li>
-  </ol>
-  <ol>
-    <li class="observablehq-link"><a href="./Contributors">Contributors</a></li>
-    <li class="observablehq-link"><a href="./Tasks">Tasks</a></li>
-    <li class="observablehq-link"><a href="./Form_Data">Form Data</a></li>
-    <li class="observablehq-link"><a href="./Events">Events</a></li>
-  </ol>
-</nav>
-<script>{const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
-<div id="observablehq-center">
-<main id="observablehq-main" class="observablehq">
-<div class="observablehq observablehq--block"><!--:6093ceab:--></div>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<link rel="stylesheet" href="./_file/style.d05da4a1.css">
-<div class="card" label="Use your data">
-<p><b>To view a project summary, upload the JSON data from the project below. </b></p>
-<div class="observablehq observablehq--block"><!--:48789c43:--></div>
-<div class="observablehq observablehq--block"><!--:49e1df97:--></div>
-</div>
-<div class="observablehq observablehq--block"><!--:aa09f982:--></div>
-<p><observablehq-loading></observablehq-loading><!--:7e220b7b:--></p>
-<div class="flex flex-row">
-  <div class="card">
-  <div class="statistics-container">
-  <a href="https://app.staple.science" target="_blank" rel="noopener noreferrer">
-  <picture>
-    <source srcset="./_file/img/logo_white_big.2c934504.png" media="(prefers-color-scheme: dark)" width="200">
-    <img src="./_file/img/logo_black_big.ee6d5ee3.png" alt="STAPLE Logo" width="200">
-  </picture>
-  </a>
-  </div>
-<p>This project summary was created using the STAPLE app. STAPLE empowers researchers to manage their projects with clarity, ensuring open and transparent documentation throughout the project lifecycle. By providing tools for seamless data and metadata tracking, STAPLE supports the principles of open science and fosters collaboration across disciplines. Learn more at <a href="https://staple.science" target="_blank" rel="noopener noreferrer">https://staple.science</a>.</p>
-  </div>
-</div>
-<div class="observablehq observablehq--block"><!--:0ca47443:--></div>
-<div class="observablehq observablehq--block"><!--:7df78131:--></div>
-<p><observablehq-loading></observablehq-loading><!--:9c2c8066:--></p>
-</main>
-<footer id="observablehq-footer">
-<nav><a rel="next" href="./Contributors"><span>Contributors</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2025-12-14T20:38:48">Dec 14, 2025</a>.</div>
-</footer>
-</div>
-</body>
+  </body>
 </html>
